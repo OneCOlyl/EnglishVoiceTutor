@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "logcat": {
+      "command": "python3",
+      "args": [
+        "C:\\Users\\sverqw\\logcat_mcp\\mcp_logcat.py"
+      ]
+    }
+  }
+}
