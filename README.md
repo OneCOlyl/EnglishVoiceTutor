@@ -1,76 +1,82 @@
-# English Voice Tutor — скелет проекта
+# English Voice Tutor
 
-Рабочий каркас Android-приложения по архитектуре из плана: Kotlin + Jetpack Compose, MVVM, Hilt, Room. Голосовой цикл (микрофон → STT → LLM → TTS → сохранение в историю) реализован целиком и должен запускаться и работать на реальном устройстве уже сейчас — но LLM пока на заглушке, а не на настоящей модели.
+Android-приложение — голосовой репетитор английского. Работает **офлайн**: распознавание речи, LLM-репетитор и синтез речи крутятся на самом устройстве. Сеть нужна только один раз — чтобы скачать модели при первом запуске.
+
+Архитектура: Kotlin + Jetpack Compose, MVVM, Hilt, Room.
+
+Голосовой цикл: **микрофон → STT (Vosk) → LLM (Gemma 4 через LiteRT-LM) → TTS → сохранение в историю**.
 
 ## Статус по компонентам
 
-| Компонент | Реализация сейчас | Что нужно для продакшена |
+| Компонент | Реализация | Детали |
 |---|---|---|
-| STT (распознавание речи) | `AndroidSttEngine` — системный `SpeechRecognizer`, работает из коробки | Заменить на whisper.cpp для устойчивости к акцентам (см. ниже) |
-| LLM (репетитор) | `StubTutorLlmEngine` — заглушка с шаблонным ответом | Заменить на `LiteRtLlmEngine` + модель Gemma 4 (см. ниже) |
-| TTS (синтез речи) | `AndroidTtsEngine` — системный `TextToSpeech`, работает из коробки | При необходимости — Piper TTS, если системные голоса слабые |
-| История диалогов | Room (`Conversation`/`Message`), экран "История", продолжение разговора | Суммаризация старой части длинных диалогов пока не реализована — `summarize()` в `LlmEngine` есть, но никто его не вызывает |
-| Сценарии/уровень | Простая форма (текстовое поле + выбор CEFR) при старте диалога | — |
+| STT (распознавание речи) | `VoskSttEngine` — Vosk (`vosk-model-en-us-0.22-lgraph`) | Модель скачивается лениво при первом нажатии на микрофон, в `filesDir`. Push-to-talk: тап — старт, ещё тап — стоп. |
+| LLM (репетитор) | `LiteRtLlmEngine` — Gemma 4 E2B через LiteRT-LM, backend GPU | Модель `~1.5 ГБ` скачивается на экране первого запуска (нужен токен HuggingFace). |
+| TTS (синтез речи) | `AndroidTtsEngine` — системный `TextToSpeech` | Работает из коробки. Озвучивает ответ целиком одним вызовом. |
+| История диалогов | Room (`Conversation`/`Message`), экран «История», продолжение разговора | В контекст LLM отдаются последние `20` сообщений (`RECENT_MESSAGES_FOR_CONTEXT`). |
+| Сценарий/уровень | Форма при старте диалога: текстовое поле сценария + выбор CEFR (A1–C2) | Системный промпт собирается в `TutorPrompt`. |
 
-Со StubTutorLlmEngine всё приложение целиком — экраны, навигация, запись с микрофона, распознавание, озвучка ответа, сохранение в Room и возврат к прошлым диалогам — можно собрать и потрогать на телефоне уже сегодня, не дожидаясь интеграции настоящей модели.
+> `StubTutorLlmEngine` и `AndroidSttEngine` ещё лежат в `data/engine/` как более простые альтернативы (заглушка LLM и системный `SpeechRecognizer`), но **в сборке не используются** — оба заменены на реальные движки в `di/AppModule.kt`.
 
 ## Как открыть и запустить
 
-1. Открыть папку проекта в Android Studio (актуальная стабильная версия). При первом открытии Studio предложит сгенерировать Gradle wrapper — согласитесь, либо запустите `gradle wrapper` вручную, если у вас установлен Gradle.
-2. Studio наверняка предложит обновить версии AGP/Kotlin/библиотек — это нормально, версии в `build.gradle.kts` зафиксированы на момент написания плана и могли устареть.
-3. Замените `applicationId`/package `com.example.englishvoicetutor` на свой (Android Studio: правый клик на пакете → Refactor → Rename, либо вручную).
-4. Запускать стоит **на реальном устройстве**, не на эмуляторе — микрофон на эмуляторах часто работает нестабильно или не работает вовсе.
-5. Для офлайн-распознавания речи системным `SpeechRecognizer`: на устройстве должен быть скачан офлайн-пакет английского языка (Настройки → система → язык и ввод → распознавание речи → офлайн-распознавание). Без него `EXTRA_PREFER_OFFLINE` сработает не везде — на части устройств распознавание молча уйдёт в онлайн или вернёт ошибку.
+1. Открыть папку проекта в Android Studio (актуальная стабильная версия). При первом открытии Studio предложит сгенерировать Gradle wrapper — согласитесь, либо запустите `gradle wrapper` вручную.
+2. **Запускать только на реальном устройстве** — микрофон и GPU-backend LLM на эмуляторе не работают как надо. Нужно устройство с достаточной памятью (ориентир — 8 ГБ ОЗУ и GPU с OpenCL).
+3. Требования к устройству: `minSdk 26`. GPU-инференс использует OpenCL (`libOpenCL.so` объявлена как опциональная native-library в манифесте).
+4. Первый запуск открывает экран **«Настройка модели»**: нужно ввести токен HuggingFace (`hf_...`) и скачать Gemma. Токен нужен, потому что репозиторий модели gated. Дальше приложение стартует сразу в «Историю».
+5. При первом нажатии на микрофон докачается Vosk-модель английского (`~128 МБ`) — это отдельная загрузка, токен не нужен.
 
-## Дальнейшие шаги: подключение настоящей LLM (Gemma 4 через LiteRT-LM)
+### Откуда качаются модели
 
-1. В `app/build.gradle.kts` раскомментировать:
-   ```kotlin
-   implementation("com.google.ai.edge.litertlm:litertlm-android:latest.release")
-   ```
-2. Скачать квантованную модель `gemma-4-E2B-it` в формате `.litertlm` (актуальные чекпойнты — на HuggingFace, организация `litert-community`). Для начала берите **E2B**, а не E4B — она надёжнее укладывается в память на 8 ГБ устройствах (подробности — в основном плане архитектуры, раздел 3.2).
-3. Модель весит больше гигабайта — её нельзя класть в `assets` приложения, APK так не пройдёт в Google Play. Нужен `ModelDownloadManager` на `WorkManager`, который скачивает файл при первом запуске в `context.filesDir` с прогресс-баром и опцией "только по Wi-Fi" — этот класс ещё не написан, это следующая по приоритету часть работы.
-4. Реализовать `LiteRtLlmEngine : LlmEngine`, примерно по такой схеме (актуальный API сверяйте с `https://github.com/google-ai-edge/LiteRT-LM`, он меняется быстро):
-   ```kotlin
-   class LiteRtLlmEngine @Inject constructor(...) : LlmEngine {
-       private val engine = Engine(
-           EngineConfig(
-               modelPath = modelFile.absolutePath,
-               backend = Backend.GPU() // или Backend.CPU(), смотря что стабильнее на тесте
-           )
-       )
-       // engine.initialize() — может занимать до ~10 секунд, вызывать заранее,
-       // не в момент первого нажатия на микрофон.
+- **LLM:** `https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm` → файл `model.litertlm` в `filesDir`. Загрузка резюмируемая (докачка через HTTP `Range`), URL и имя файла — в `ModelSetupViewModel`.
+- **STT:** `https://alphacephei.com/kaldi/models/vosk-model-en-us-0.22-lgraph.zip`, распаковывается в `filesDir`. URL — в `VoskSttEngine`.
 
-       override fun generateReply(systemPrompt: String, history: List<Message>, userMessage: String) =
-           callbackFlow {
-               val conversation = engine.createConversation(systemPrompt = systemPrompt)
-               // History нужно будет "проиграть" в conversation перед отправкой нового сообщения,
-               // либо хранить Conversation-объект живым между репликами, пока активен диалог.
-               conversation.sendMessageAsync(userMessage)
-                   .collect { token -> trySend(token.toString()) }
-               close()
-           }
-   }
-   ```
-   Это не финальный код, а отправная точка — точные имена методов (`createConversation`, формат истории и т.д.) нужно свериться с актуальным `docs/api/kotlin/getting_started.md` в репозитории LiteRT-LM на момент интеграции.
-5. В `di/AppModule.kt` заменить `bindLlmEngine(impl: StubTutorLlmEngine)` на `bindLlmEngine(impl: LiteRtLlmEngine)` — это единственное место, которое нужно поменять, остальной код (ViewModel, репозиторий, UI) не зависит от конкретной реализации.
-6. Прогнать бенчмарк на 1–2 реальных тестовых устройствах: скорость генерации (токены/сек), фактический расход памяти, не убивает ли система процесс — прежде чем что-либо коммитить как финальное решение.
+Готовность LLM определяется наличием файла `filesDir/model.litertlm` (см. `MainActivity` → `AppNavHost.isModelReady`).
 
-## Дальнейшие шаги: замена STT на whisper.cpp
+## Структура кода
 
-Системный `SpeechRecognizer` — рабочий вариант для разработки, но менее устойчив к акцентам учащихся и зависит от того, что установлено в системе конкретного устройства. Чтобы заменить на whisper.cpp:
+```
+app/src/main/java/com/example/englishvoicetutor/
+├─ MainActivity.kt            — точка входа, запрос разрешения на микрофон, выбор стартового экрана
+├─ EnglishVoiceTutorApp.kt    — @HiltAndroidApp
+├─ di/AppModule.kt            — привязки движков (Stt/Tts/Llm) и Room. Единственное место смены реализаций.
+├─ domain/
+│  ├─ TutorPrompt.kt          — сборка системного промпта (главный рычаг качества на маленькой модели)
+│  └─ model/                  — доменные модели: Conversation, Message, CefrLevel, VoiceUiState, ModelDownloadState
+├─ data/
+│  ├─ engine/                 — Stt/Tts/Llm движки (интерфейсы в Engines.kt)
+│  ├─ local/                  — Room: AppDatabase, DAO, Entities
+│  └─ repository/             — ConversationRepository
+└─ presentation/
+   ├─ setup/                  — экран первого запуска (скачивание LLM)
+   ├─ history/                — список диалогов + создание нового
+   ├─ conversation/           — экран диалога, голосовой цикл (ConversationViewModel)
+   ├─ navigation/AppNavHost   — setup → history → conversation
+   └─ theme/
+```
 
-1. Собрать whisper.cpp под Android NDK (есть готовые примеры интеграции и JNI-обвязки в репозитории whisper.cpp).
-2. Скачать модель `ggml-base.en.bin` (~140 МБ) тем же `ModelDownloadManager`, что и для LLM.
-3. Реализовать `WhisperSttEngine : SttEngine`, подключить вместо `AndroidSttEngine` в `di/AppModule.kt` — опять же, единственное место правки благодаря интерфейсу.
+Ключевая развязка: UI и `ConversationViewModel` зависят только от интерфейсов `SttEngine`/`TtsEngine`/`LlmEngine` (`data/engine/Engines.kt`). Смена реализации — это одна строка в `di/AppModule.kt`.
 
-## Известные упрощения этого скелета (сознательно, для скорости MVP)
+## Дальнейшие шаги / известные упрощения
 
-- Нет VAD (детектора голосовой активности) — пока push-to-talk через кнопку микрофона, а не автоматическое определение конца фразы. Добавление Silero VAD — отдельная задача.
-- TTS озвучивает ответ целиком одним вызовом, не по предложениям — потоковая озвучка по мере генерации (для ощущения более живого разговора) пока не реализована, хотя `LlmEngine.generateReply` уже возвращает `Flow<String>` и под это спроектирован.
-- Суммаризация старой истории диалога (`LlmEngine.summarize`) объявлена в интерфейсе, но никто её не вызывает — при очень длинных диалогах контекст просто обрежется по `RECENT_MESSAGES_FOR_CONTEXT` в `ConversationRepository`.
-- Иконка приложения — однотонная заглушка-кружок (`res/drawable/ic_launcher_foreground.xml`). Замените через Android Studio: правый клик на `res` → New → Image Asset.
-- Тестов (unit/UI) нет — это явно следующий шаг перед тем, как добавлять фичи поверх.
+- **VAD не задействован.** В `VoskSttEngine` объявлены пороги (`SPEECH_THRESHOLD`, `SILENCE_CHUNKS_TO_STOP`) под авто-детекцию конца фразы, но цикл записи их не использует — сейчас чистый push-to-talk. Довести до авто-остановки по тишине (или Silero VAD) — отдельная задача.
+- **TTS не потоковый.** Ответ озвучивается целиком после полной генерации, хотя `LlmEngine.generateReply` уже отдаёт `Flow<String>` и спроектирован под потоковую озвучку по мере генерации.
+- **Суммаризация длинных диалогов не вызывается.** `LlmEngine.summarize` и `TutorPrompt.summarization` есть, но при очень длинных диалогах контекст просто обрезается по `RECENT_MESSAGES_FOR_CONTEXT` в `ConversationRepository`. Поле `summary` в `Conversation` под это зарезервировано.
+- **HF-токен вводится вручную** на экране настройки и в приложении не сохраняется — при переустановке ввести заново.
+- **Скачивание LLM — не на WorkManager.** Идёт в `viewModelScope` в `ModelSetupViewModel`; при сворачивании приложения может прерваться (докачка это переживёт). Зависимость `work-runtime-ktx` подключена, но менеджер загрузок на ней ещё не написан.
+- **Иконка приложения** — заглушка. Заменить через Android Studio: правый клик на `res` → New → Image Asset.
+- **Тестов (unit/UI) практически нет** — только сгенерированные `ExampleUnitTest`/`ExampleInstrumentedTest`.
 
-Полный архитектурный план и roadmap по фазам — в файле `Архитектура_и_roadmap_English_Voice_Tutor.md`, который был передан раньше в этом диалоге.
+## Смена реализации движка
+
+Всё завязано на `di/AppModule.kt`:
+
+```kotlin
+@Binds @Singleton
+abstract fun bindSttEngine(impl: VoskSttEngine): SttEngine     // ← сюда, напр., WhisperSttEngine
+
+@Binds @Singleton
+abstract fun bindLlmEngine(impl: LiteRtLlmEngine): LlmEngine   // ← или StubTutorLlmEngine для разработки UI без модели
+```
+
+Чтобы разрабатывать UI без скачивания гигабайтной модели — верните `StubTutorLlmEngine` в `bindLlmEngine` (и, при желании, `AndroidSttEngine` в `bindSttEngine`), больше ничего менять не нужно.
