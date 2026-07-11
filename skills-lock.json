@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "android-clean-architecture": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/android-clean-architecture/SKILL.md",
+      "computedHash": "8f7efca3efcc228560c39c366e846d4bf22e585f9847610634f53b7622f7795c"
+    }
+  }
+}
