@@ -1,4 +1,4 @@
-package com.example.englishvoicetutor.presentation.setup
+package com.example.englishvoicetutor.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,18 +13,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Первичная настройка модели. Логика скачивания/подключения — в общем
- * [ModelInstaller]; экран показывает [ModelPickerForm] (каталог + своя ссылка),
- * так что HuggingFace нужен только для источников с `requiresToken`.
- */
 @HiltViewModel
-class ModelSetupViewModel @Inject constructor(
+class SettingsViewModel @Inject constructor(
     private val installer: ModelInstaller,
     private val prefs: ModelPreferences,
 ) : ViewModel() {
 
     val models: List<LlmModelOption> = LlmModelCatalog.all
+
+    /** id и имя сейчас установленной модели — для подсказки в UI. */
+    val installedModelId: String? = prefs.installedModelId
+    val installedModelLabel: String? = prefs.installedModelLabel
     val lastCustomUrl: String = prefs.customUrl.orEmpty()
 
     private val _state = MutableStateFlow<LlmInstallState>(LlmInstallState.Idle)
