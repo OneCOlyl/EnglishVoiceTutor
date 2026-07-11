@@ -11,6 +11,7 @@ import com.example.englishvoicetutor.data.engine.LlmEngine
 import com.example.englishvoicetutor.data.engine.SttEngine
 import com.example.englishvoicetutor.data.engine.TtsEngine
 import com.example.englishvoicetutor.data.engine.VoskSttEngine
+import com.example.englishvoicetutor.data.model.ModelInstaller
 import com.example.englishvoicetutor.data.repository.ConversationRepository
 import com.example.englishvoicetutor.domain.TutorPrompt
 import com.example.englishvoicetutor.domain.model.CefrLevel
@@ -39,6 +40,7 @@ class ConversationViewModel @Inject constructor(
     private val ttsEngine: TtsEngine,
     private val llmEngine: LlmEngine,
     private val voskEngine: VoskSttEngine,
+    private val modelInstaller: ModelInstaller,
 ) : ViewModel() {
 
     private val navArgId: Long = savedStateHandle.get<Long>("conversationId") ?: NEW_CONVERSATION_ID
@@ -71,6 +73,14 @@ class ConversationViewModel @Inject constructor(
             viewModelScope.launch {
                 _conversationMeta.value = repository.getConversation(navArgId)
             }
+        }
+        // Прогреваем LLM заранее: после рестарта приложения модель есть на диске,
+        // но не подключена к движку в этом процессе. Без этого первый вызов LLM
+        // упал бы с «Модель не загружена». Идемпотентно, тяжёлую инициализацию
+        // (~30 сек) делаем один раз в фоне, пока пользователь читает историю.
+        viewModelScope.launch {
+            runCatching { modelInstaller.ensureInitialized() }
+                .onFailure { Log.e("VoiceTutor", "LLM warm-up failed", it) }
         }
     }
 
@@ -120,25 +130,34 @@ class ConversationViewModel @Inject constructor(
         Log.d("VoiceTutor", "onSpeechResult: text='$userText'")
         if (userText.isBlank()) { _voiceState.value = VoiceUiState.Idle; return }
         viewModelScope.launch {
-            Log.d("VoiceTutor", "Saving user message...")
-            repository.appendMessage(convId, MessageRole.USER, userText)
-            _voiceState.value = VoiceUiState.Thinking
-            Log.d("VoiceTutor", "Calling LLM...")
-            val systemPrompt = TutorPrompt.system(meta.cefrLevel, meta.scenario)
-            val history = repository.getContextForResume(convId)
+            try {
+                Log.d("VoiceTutor", "Saving user message...")
+                repository.appendMessage(convId, MessageRole.USER, userText)
+                _voiceState.value = VoiceUiState.Thinking
+                // На случай если прогрев из init ещё не завершился (или не стартовал) —
+                // гарантируем, что движок подключён, прежде чем звать LLM.
+                modelInstaller.ensureInitialized()
+                Log.d("VoiceTutor", "Calling LLM...")
+                val systemPrompt = TutorPrompt.system(meta.cefrLevel, meta.scenario)
+                val history = repository.getContextForResume(convId)
 
-            val replyBuilder = StringBuilder()
-            llmEngine.generateReply(systemPrompt, history, userText)
-                .collect { chunk -> replyBuilder.append(chunk) }
+                val replyBuilder = StringBuilder()
+                llmEngine.generateReply(systemPrompt, history, userText)
+                    .collect { chunk -> replyBuilder.append(chunk) }
 
-            val replyText = replyBuilder.toString().trim().ifBlank {
-                "Sorry, could you say that again?"
+                val replyText = replyBuilder.toString().trim().ifBlank {
+                    "Sorry, could you say that again?"
+                }
+
+                repository.appendMessage(convId, MessageRole.TUTOR, replyText)
+                _voiceState.value = VoiceUiState.Speaking(replyText)
+                ttsEngine.speak(replyText)
+                _voiceState.value = VoiceUiState.Idle
+            } catch (e: Exception) {
+                // Любая ошибка LLM/TTS не должна ронять процесс — показываем её в UI.
+                Log.e("VoiceTutor", "Voice loop failed", e)
+                _voiceState.value = VoiceUiState.Error(e.message ?: "Ошибка ответа репетитора")
             }
-
-            repository.appendMessage(convId, MessageRole.TUTOR, replyText)
-            _voiceState.value = VoiceUiState.Speaking(replyText)
-            ttsEngine.speak(replyText)
-            _voiceState.value = VoiceUiState.Idle
         }
     }
 
