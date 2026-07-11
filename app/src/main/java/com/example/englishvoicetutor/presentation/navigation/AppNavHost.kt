@@ -10,12 +10,14 @@ import com.example.englishvoicetutor.data.engine.LiteRtLlmEngine
 import com.example.englishvoicetutor.domain.model.NEW_CONVERSATION_ID
 import com.example.englishvoicetutor.presentation.conversation.ConversationScreen
 import com.example.englishvoicetutor.presentation.history.HistoryScreen
+import com.example.englishvoicetutor.presentation.settings.SettingsScreen
 import com.example.englishvoicetutor.presentation.setup.ModelSetupScreen
 
 private const val ROUTE_HISTORY = "history"
 private const val ROUTE_CONVERSATION = "conversation/{conversationId}"
 private const val ARG_CONVERSATION_ID = "conversationId"
 private const val ROUTE_SETUP = "setup"
+private const val ROUTE_SETTINGS = "settings"
 @Composable
 fun AppNavHost(
     micPermissionGranted: Boolean,
@@ -38,8 +40,13 @@ fun AppNavHost(
         composable(ROUTE_HISTORY) {
             HistoryScreen(
                 onOpenConversation = { id -> navController.navigate("conversation/$id") },
-                onNewConversation = { navController.navigate("conversation/$NEW_CONVERSATION_ID") }
+                onNewConversation = { navController.navigate("conversation/$NEW_CONVERSATION_ID") },
+                onOpenSettings = { navController.navigate(ROUTE_SETTINGS) }
             )
+        }
+
+        composable(ROUTE_SETTINGS) {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
 
         composable(
