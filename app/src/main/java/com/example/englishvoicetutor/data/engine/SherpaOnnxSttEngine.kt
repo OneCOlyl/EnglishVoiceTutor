@@ -10,63 +10,64 @@ import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.util.Log
 import com.example.englishvoicetutor.domain.model.ModelDownloadState
+import com.k2fsa.sherpa.onnx.OfflineModelConfig
+import com.k2fsa.sherpa.onnx.OfflineRecognizer
+import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
+import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import org.vosk.Model
-import org.vosk.Recognizer
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URL
-import java.util.zip.ZipInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.abs
 
+// Whisper small.en (int8) — английская офлайн-модель. Заметно устойчивее Moonshine base
+// на коротких фразах, акценте и названиях; non-streaming — идеально ложится на push-to-talk.
 private const val MODEL_URL =
-    "https://alphacephei.com/kaldi/models/vosk-model-en-us-0.22-lgraph.zip"
-private const val MODEL_DIR_NAME = "vosk-model-en-us-0.22-lgraph"
+    "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/" +
+        "sherpa-onnx-whisper-small.en.tar.bz2"
+private const val MODEL_DIR_NAME = "sherpa-onnx-whisper-small.en"
 private const val SAMPLE_RATE = 16_000
-private const val TAG = "VoskSttEngine"
-
-// Порог амплитуды для определения речи (0..32767).
-// Если микрофон слишком чувствительный или шумный — поднять до ~1000.
-private const val SPEECH_THRESHOLD = 500
-// Количество «тихих» чанков подряд, после которых считаем, что пользователь замолчал.
-// При bufferSize=3200 сэмплов @ 16kHz один чанк ≈ 200 мс → 15 чанков ≈ 3 сек тишины.
-private const val SILENCE_CHUNKS_TO_STOP = 15
+private const val TAG = "SherpaOnnxSttEngine"
 
 @Singleton
-class VoskSttEngine @Inject constructor(
+class SherpaOnnxSttEngine @Inject constructor(
     @ApplicationContext private val context: Context
 ) : SttEngine {
 
     @Volatile
-    private var model: Model? = null
+    private var recognizer: OfflineRecognizer? = null
     private val _downloadState = MutableStateFlow<ModelDownloadState>(ModelDownloadState.Idle)
     @Volatile private var audioRecord: AudioRecord? = null
-    @Volatile private var recognizer: Recognizer? = null
     @Volatile private var recordingThread: Thread? = null
+
+    // Аккумулятор аудио за одно нажатие: Moonshine распознаёт всю фразу разом на stopRecording.
+    private val recordedChunks = mutableListOf<ShortArray>()
+    @Volatile private var recordedSamples = 0
+
     val downloadState: StateFlow<ModelDownloadState> = _downloadState.asStateFlow()
 
     /**
-     * Убеждаемся, что модель скачана и загружена.
-     * Вызывается лениво при первом использовании.
+     * Убеждаемся, что модель скачана, распакована и загружена в память.
+     * Вызывается лениво при первом использовании микрофона.
      */
-    private suspend fun ensureModel(): Model = withContext(Dispatchers.IO) {
-        model?.let { return@withContext it }
+    private suspend fun ensureRecognizer(): OfflineRecognizer = withContext(Dispatchers.IO) {
+        recognizer?.let { return@withContext it }
 
         val modelDir = File(context.filesDir, MODEL_DIR_NAME)
-        val modelReady = File(modelDir, "am/final.mdl").exists()
+        val modelReady = File(modelDir, "small.en-tokens.txt").exists() &&
+            File(modelDir, "small.en-encoder.int8.onnx").exists()
 
         if (!modelReady) {
             modelDir.deleteRecursively()
             try {
-                downloadAndUnzip(MODEL_URL, context.filesDir)
+                downloadAndUnpack(MODEL_URL, context.filesDir)
             } catch (e: Exception) {
                 _downloadState.value = ModelDownloadState.Error(e.message ?: "Ошибка загрузки")
                 throw e
@@ -74,30 +75,44 @@ class VoskSttEngine @Inject constructor(
         }
 
         _downloadState.value = ModelDownloadState.Downloading(99, listOf("Загружаем модель в память…"))
-        val m = Model(modelDir.absolutePath)
+        val config = OfflineRecognizerConfig(
+            modelConfig = OfflineModelConfig(
+                whisper = OfflineWhisperModelConfig(
+                    encoder = File(modelDir, "small.en-encoder.int8.onnx").absolutePath,
+                    decoder = File(modelDir, "small.en-decoder.int8.onnx").absolutePath,
+                    language = "en",
+                    task = "transcribe",
+                ),
+                tokens = File(modelDir, "small.en-tokens.txt").absolutePath,
+                numThreads = 2,
+                debug = false,
+                provider = "cpu",
+            ),
+            // assetManager не передаём — модель лежит в filesDir, пути абсолютные.
+        )
+        val r = OfflineRecognizer(config = config)
         _downloadState.value = ModelDownloadState.Ready
-        m.also { model = it }
+        r.also { recognizer = it }
     }
 
     override suspend fun startRecording() {
-        val m = ensureModel() // теперь модель точно загружена
+        ensureRecognizer() // гарантируем, что модель загружена, до старта записи
 
         val minBuf = AudioRecord.getMinBufferSize(
             SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT
         )
         val chunkSamples = 3200
-        // Кольцевой буфер AudioRecord держим заметно больше одного чанка: при задержке
-        // потока чтения (GC, планировщик ОС) микрофонный буфер иначе переполняется и
-        // теряет сэмплы — на выходе «съеденные»/искажённые слова. Запас ≈ 4 чанка (~800 мс).
+        // Кольцевой буфер держим больше одного чанка: при задержке потока чтения (GC,
+        // планировщик ОС) микрофонный буфер иначе переполняется и теряет сэмплы. Запас ≈ 4 чанка.
         val bufferBytes = maxOf(minBuf, chunkSamples * 2 * 4)
 
-        recognizer = Recognizer(m, SAMPLE_RATE.toFloat())
-        // Включаем пословную разбивку с confidence — для диагностики качества (см. stopRecording).
-        recognizer?.setWords(true)
+        synchronized(recordedChunks) {
+            recordedChunks.clear()
+            recordedSamples = 0
+        }
 
-        // UNPROCESSED отдаёт по-настоящему сырой сигнал с микрофона. VOICE_RECOGNITION на
-        // многих прошивках всё равно тихо включает шумодав/AGC, которые «замазывают» фонемы
-        // и ломают акустическую модель Vosk. Берём UNPROCESSED, если устройство его заявляет.
+        // UNPROCESSED отдаёт по-настоящему сырой сигнал; VOICE_RECOGNITION на многих прошивках
+        // тихо включает шумодав/AGC, которые «замазывают» фонемы. Берём UNPROCESSED, если заявлен.
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val unprocessedSupported =
             audioManager.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED) == "true"
@@ -118,19 +133,8 @@ class VoskSttEngine @Inject constructor(
             throw IllegalStateException("Нет разрешения на микрофон", e)
         }
 
-        // Гасим системные аудиоэффекты на сессии записи: они настроены под человеческий
-        // слух, а не под ASR, и стабильно ухудшают распознавание. Если UNPROCESSED уже
-        // выбран — это no-op, но на fallback-тракте выключение реально помогает.
+        // Гасим системные аудиоэффекты: они настроены под человеческий слух, а не под ASR.
         audioRecord?.audioSessionId?.let { disableAudioEffects(it) }
-        // Логируем фактический формат: если устройство отдаёт не 16 кГц / не моно,
-        // Android ресемплит на лету и качество распознавания падает.
-        audioRecord?.let { ar ->
-            Log.d(
-                TAG,
-                "AudioRecord: sampleRate=${ar.sampleRate}, channels=${ar.channelCount}, " +
-                    "encoding=${ar.audioFormat}, state=${ar.state}"
-            )
-        }
         audioRecord!!.startRecording()
 
         recordingThread = Thread {
@@ -138,8 +142,10 @@ class VoskSttEngine @Inject constructor(
             while (audioRecord?.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
                 val read = audioRecord?.read(buffer, 0, buffer.size) ?: break
                 if (read > 0) {
-                    val bytes = shortsToLittleEndianBytes(buffer, read)
-                    recognizer?.acceptWaveForm(bytes, bytes.size)
+                    synchronized(recordedChunks) {
+                        recordedChunks.add(buffer.copyOf(read))
+                        recordedSamples += read
+                    }
                 }
             }
         }.also { it.start() }
@@ -150,19 +156,38 @@ class VoskSttEngine @Inject constructor(
         audioRecord?.release()
         audioRecord = null
 
-        recordingThread?.join(2000) // ждём пока поток допишет данные в recognizer
+        recordingThread?.join(2000) // ждём, пока поток допишет последние чанки
         recordingThread = null
 
-        val json = recognizer?.finalResult ?: "{}"
-        recognizer?.close()
-        recognizer = null
+        val samples = drainRecordedSamples()
+        val r = recognizer
+        if (r == null || samples.isEmpty()) return ""
 
-        // Диагностика: сырой JSON содержит пословный список с confidence (conf).
-        // Систематически низкий conf → узкое место в модели (lgraph); точечный → фонемы/акцент.
-        Log.d(TAG, "Vosk finalResult: $json")
+        // Whisper — офлайн-модель: скармливаем всю фразу разом одним стримом.
+        val stream = r.createStream()
+        stream.acceptWaveform(samples, SAMPLE_RATE)
+        r.decode(stream)
+        val text = r.getResult(stream).text
+        stream.release()
 
-        return JSONObject(json).optString("text", "").trim()
+        Log.d(TAG, "Whisper result: '$text'")
+        return text.trim()
     }
+
+    /** Склеивает накопленные чанки в один FloatArray в диапазоне [-1, 1], как ждёт sherpa-onnx. */
+    private fun drainRecordedSamples(): FloatArray = synchronized(recordedChunks) {
+        val out = FloatArray(recordedSamples)
+        var i = 0
+        for (chunk in recordedChunks) {
+            for (s in chunk) {
+                out[i++] = s / 32768.0f
+            }
+        }
+        recordedChunks.clear()
+        recordedSamples = 0
+        out
+    }
+
     /**
      * Отключает системные эффекты обработки звука на сессии записи (AGC, шумодав, эхоподавление).
      * Каждый вызов защищён: часть эффектов может быть недоступна на устройстве.
@@ -185,17 +210,7 @@ class VoskSttEngine @Inject constructor(
         }.onFailure { Log.w(TAG, "AEC off failed", it) }
     }
 
-    private fun shortsToLittleEndianBytes(shorts: ShortArray, count: Int): ByteArray {
-        val bytes = ByteArray(count * 2)
-        for (i in 0 until count) {
-            val v = shorts[i].toInt()
-            bytes[i * 2] = (v and 0xFF).toByte()
-            bytes[i * 2 + 1] = (v shr 8 and 0xFF).toByte()
-        }
-        return bytes
-    }
-
-    private fun downloadAndUnzip(url: String, destDir: File) {
+    private fun downloadAndUnpack(url: String, destDir: File) {
         val logs = mutableListOf<String>()
 
         fun log(msg: String) {
@@ -226,11 +241,11 @@ class VoskSttEngine @Inject constructor(
 
         log("Скачиваем модель…")
 
-        // Сначала сохраняем zip во временный файл, считая прогресс
-        val tmpZip = File(destDir, "model_tmp.zip")
+        // Сохраняем архив во временный файл, считая прогресс.
+        val tmpArchive = File(destDir, "model_tmp.tar.bz2")
         var downloaded = 0L
         stream.use { input ->
-            FileOutputStream(tmpZip).use { output ->
+            FileOutputStream(tmpArchive).use { output ->
                 val buf = ByteArray(8192)
                 var n: Int
                 while (input.read(buf).also { n = it } != -1) {
@@ -249,21 +264,23 @@ class VoskSttEngine @Inject constructor(
         }
 
         log("Распаковываем архив…")
-        ZipInputStream(tmpZip.inputStream().buffered()).use { zip ->
-            var entry = zip.nextEntry
+        // Архив: bzip2 → tar. Внутри всё лежит под каталогом MODEL_DIR_NAME/.
+        TarArchiveInputStream(
+            BZip2CompressorInputStream(tmpArchive.inputStream().buffered())
+        ).use { tar ->
+            var entry = tar.nextEntry
             while (entry != null) {
                 val outFile = File(destDir, entry.name)
                 if (entry.isDirectory) {
                     outFile.mkdirs()
                 } else {
                     outFile.parentFile?.mkdirs()
-                    FileOutputStream(outFile).use { zip.copyTo(it) }
+                    FileOutputStream(outFile).use { tar.copyTo(it) }
                 }
-                zip.closeEntry()
-                entry = zip.nextEntry
+                entry = tar.nextEntry
             }
         }
-        tmpZip.delete()
+        tmpArchive.delete()
         log("Готово!")
     }
 }

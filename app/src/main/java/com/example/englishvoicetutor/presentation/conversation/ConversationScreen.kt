@@ -192,7 +192,7 @@ private fun ActiveConversation(
                     containerColor = if (busy) MaterialTheme.colorScheme.surfaceVariant
                     else MaterialTheme.colorScheme.primaryContainer
                 ) {
-                    if (voiceState is VoiceUiState.Thinking) {
+                    if (voiceState is VoiceUiState.Transcribing || voiceState is VoiceUiState.Thinking) {
                         CircularProgressIndicator(modifier = Modifier.height(24.dp))
                     } else {
                         Icon(

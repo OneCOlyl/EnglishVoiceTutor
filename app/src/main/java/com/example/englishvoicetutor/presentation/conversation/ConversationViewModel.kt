@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.englishvoicetutor.data.engine.LlmEngine
 import com.example.englishvoicetutor.data.engine.SttEngine
+import com.example.englishvoicetutor.data.engine.SherpaOnnxSttEngine
 import com.example.englishvoicetutor.data.engine.TtsEngine
-import com.example.englishvoicetutor.data.engine.VoskSttEngine
 import com.example.englishvoicetutor.data.model.ModelInstaller
 import com.example.englishvoicetutor.data.repository.ConversationRepository
 import com.example.englishvoicetutor.domain.TutorPrompt
@@ -22,6 +22,7 @@ import com.example.englishvoicetutor.domain.model.ModelDownloadState
 import com.example.englishvoicetutor.domain.model.NEW_CONVERSATION_ID
 import com.example.englishvoicetutor.domain.model.VoiceUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,13 +41,13 @@ class ConversationViewModel @Inject constructor(
     private val sttEngine: SttEngine,
     private val ttsEngine: TtsEngine,
     private val llmEngine: LlmEngine,
-    private val voskEngine: VoskSttEngine,
+    private val sttModelEngine: SherpaOnnxSttEngine,
     private val modelInstaller: ModelInstaller,
 ) : ViewModel() {
 
     private val navArgId: Long = savedStateHandle.get<Long>("conversationId") ?: NEW_CONVERSATION_ID
     val isNewConversation: Boolean = navArgId == NEW_CONVERSATION_ID
-    val modelDownloadState: StateFlow<ModelDownloadState> = voskEngine.downloadState
+    val modelDownloadState: StateFlow<ModelDownloadState> = sttModelEngine.downloadState
 
     private val _conversationId = MutableStateFlow(navArgId.takeIf { it != NEW_CONVERSATION_ID })
     private val _conversationMeta = MutableStateFlow<Conversation?>(null)
@@ -109,9 +111,14 @@ class ConversationViewModel @Inject constructor(
                 }
             }
             is VoiceUiState.Recording -> {
-                val userText = sttEngine.stopRecording()
-                Log.d("VoiceTutor", "STT result: '$userText'")
-                onSpeechResult(userText)
+                // Whisper-декод занимает несколько секунд — уводим его с главного потока
+                // (иначе фриз UI/ANR) и показываем состояние «Распознаю речь…».
+                _voiceState.value = VoiceUiState.Transcribing
+                viewModelScope.launch {
+                    val userText = withContext(Dispatchers.Default) { sttEngine.stopRecording() }
+                    Log.d("VoiceTutor", "STT result: '$userText'")
+                    onSpeechResult(userText)
+                }
             }
             else -> { /* идёт обработка, игнорируем */ }
         }

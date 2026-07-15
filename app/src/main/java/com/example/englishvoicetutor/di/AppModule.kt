@@ -2,7 +2,7 @@ package com.example.englishvoicetutor.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.englishvoicetutor.data.engine.VoskSttEngine
+import com.example.englishvoicetutor.data.engine.SherpaOnnxSttEngine
 import com.example.englishvoicetutor.data.engine.AndroidTtsEngine
 import com.example.englishvoicetutor.data.engine.LiteRtLlmEngine
 import com.example.englishvoicetutor.data.engine.LlmEngine
@@ -24,7 +24,7 @@ abstract class EngineBindModule {
 
     @Binds
     @Singleton
-    abstract fun bindSttEngine(impl: VoskSttEngine): SttEngine
+    abstract fun bindSttEngine(impl: SherpaOnnxSttEngine): SttEngine
 
     @Binds
     @Singleton

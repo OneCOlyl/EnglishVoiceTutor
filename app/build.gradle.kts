@@ -77,4 +77,11 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     implementation(libs.vosk.android)
+
+    // --- sherpa-onnx (офлайн STT, движок для Moonshine) ---
+    // AAR с нативными библиотеками (arm64-v8a и др.) публикуется через JitPack.
+    // Версию при необходимости поднять до последнего тега k2-fsa/sherpa-onnx.
+    implementation("com.github.k2-fsa:sherpa-onnx:v1.12.40")
+    // Распаковка .tar.bz2 архива модели Moonshine (bzip2 нет в стандартной библиотеке).
+    implementation("org.apache.commons:commons-compress:1.27.1")
 }
