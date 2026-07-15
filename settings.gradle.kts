@@ -12,6 +12,8 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://alphacephei.com/maven/") }
+        // sherpa-onnx (k2-fsa) публикует Android AAR через JitPack, не на Maven Central.
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
