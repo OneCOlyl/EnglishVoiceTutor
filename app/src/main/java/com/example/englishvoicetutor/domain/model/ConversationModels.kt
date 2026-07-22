@@ -36,6 +36,22 @@ data class Conversation(
 )
 
 /**
+ * Дополнительный разбор одной реплики, который подгружается по запросу пользователя
+ * (перевод на русский и/или проверка ошибок с подсказкой «как лучше сказать»).
+ * Хранится в UI-слое по id сообщения, в БД не пишется — это вспомогательная подсказка.
+ */
+data class MessageInsight(
+    val translation: String? = null,
+    val translationLoading: Boolean = false,
+    /** Исправленный/более естественный вариант фразы (из feedback). */
+    val better: String? = null,
+    /** Краткое пояснение по-русски, что было не так. */
+    val note: String? = null,
+    val feedbackLoading: Boolean = false,
+    val error: String? = null
+)
+
+/**
  * Состояние голосового пайплайна, которое отображает UI.
  * Idle -> Listening -> Transcribing -> Thinking -> Speaking -> Idle (цикл).
  */
