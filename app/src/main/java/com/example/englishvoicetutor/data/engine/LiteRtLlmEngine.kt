@@ -2,6 +2,7 @@ package com.example.englishvoicetutor.data.engine
 
 import android.content.Context
 import android.util.Log
+import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Message
 import com.example.englishvoicetutor.domain.model.MessageRole
 import com.google.ai.edge.litertlm.Backend
@@ -69,16 +70,28 @@ class LiteRtLlmEngine @Inject constructor(
     }
 
     override suspend fun summarize(history: List<Message>): String {
-        val eng = engine ?: return ""
         val text = history.joinToString("\n") {
             "${if (it.role == MessageRole.USER) "User" else "Tutor"}: ${it.text}"
         }
+        return oneShot("Summarize this conversation in 2-3 sentences:\n$text")
+    }
+
+    override suspend fun translateToRussian(text: String): String =
+        oneShot(com.example.englishvoicetutor.domain.TutorPrompt.translateToRussian(text)).trim()
+
+    override suspend fun feedback(text: String, level: CefrLevel): String =
+        oneShot(com.example.englishvoicetutor.domain.TutorPrompt.feedback(text, level)).trim()
+
+    /**
+     * Разовый запрос к модели без истории диалога — для перевода, разбора ошибок
+     * и суммаризации. Собирает потоковый ответ в одну строку.
+     */
+    private suspend fun oneShot(prompt: String): String {
+        val eng = engine ?: return ""
         return withContext(Dispatchers.IO) {
             var result = ""
             eng.createConversation().use { conversation ->
-                conversation.sendMessageAsync(
-                    "Summarize this conversation in 2-3 sentences:\n$text"
-                ).collect { result += it.toString() }
+                conversation.sendMessageAsync(prompt).collect { result += it.toString() }
             }
             result
         }

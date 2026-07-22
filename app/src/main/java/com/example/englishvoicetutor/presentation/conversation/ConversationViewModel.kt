@@ -17,6 +17,7 @@ import com.example.englishvoicetutor.domain.TutorPrompt
 import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Conversation
 import com.example.englishvoicetutor.domain.model.Message
+import com.example.englishvoicetutor.domain.model.MessageInsight
 import com.example.englishvoicetutor.domain.model.MessageRole
 import com.example.englishvoicetutor.domain.model.ModelDownloadState
 import com.example.englishvoicetutor.domain.model.NEW_CONVERSATION_ID
@@ -54,6 +55,10 @@ class ConversationViewModel @Inject constructor(
 
     private val _voiceState = MutableStateFlow<VoiceUiState>(VoiceUiState.Idle)
     val voiceState: StateFlow<VoiceUiState> = _voiceState.asStateFlow()
+
+    /** Подсказки по сообщениям (перевод / разбор ошибок), по id сообщения. Живёт только в UI. */
+    private val _insights = MutableStateFlow<Map<Long, MessageInsight>>(emptyMap())
+    val insights: StateFlow<Map<Long, MessageInsight>> = _insights.asStateFlow()
 
     val conversationId: StateFlow<Long?> = _conversationId.asStateFlow()
     val conversationMeta: StateFlow<Conversation?> = _conversationMeta.asStateFlow()
@@ -165,6 +170,71 @@ class ConversationViewModel @Inject constructor(
                 Log.e("VoiceTutor", "Voice loop failed", e)
                 _voiceState.value = VoiceUiState.Error(e.message ?: "Ошибка ответа репетитора")
             }
+        }
+    }
+
+    private fun updateInsight(messageId: Long, transform: (MessageInsight) -> MessageInsight) {
+        _insights.value = _insights.value.toMutableMap().apply {
+            put(messageId, transform(get(messageId) ?: MessageInsight()))
+        }
+    }
+
+    /** Перевод реплики на русский по нажатию кнопки под сообщением. Идемпотентно кешируется. */
+    fun translateMessage(message: Message) {
+        val current = _insights.value[message.id]
+        if (current?.translation != null || current?.translationLoading == true) return
+        viewModelScope.launch {
+            updateInsight(message.id) { it.copy(translationLoading = true, error = null) }
+            try {
+                modelInstaller.ensureInitialized()
+                val translation = llmEngine.translateToRussian(message.text)
+                updateInsight(message.id) {
+                    it.copy(translation = translation, translationLoading = false)
+                }
+            } catch (e: Exception) {
+                Log.e("VoiceTutor", "Translate failed", e)
+                updateInsight(message.id) {
+                    it.copy(translationLoading = false, error = e.message ?: "Ошибка перевода")
+                }
+            }
+        }
+    }
+
+    /** Разбор ошибок в реплике учащегося + подсказка «как лучше сказать». */
+    fun reviewMessage(message: Message) {
+        val current = _insights.value[message.id]
+        if (current?.better != null || current?.feedbackLoading == true) return
+        val meta = _conversationMeta.value ?: return
+        viewModelScope.launch {
+            updateInsight(message.id) { it.copy(feedbackLoading = true, error = null) }
+            try {
+                modelInstaller.ensureInitialized()
+                val raw = llmEngine.feedback(message.text, meta.cefrLevel)
+                val (better, note) = parseFeedback(raw)
+                updateInsight(message.id) {
+                    it.copy(better = better, note = note, feedbackLoading = false)
+                }
+            } catch (e: Exception) {
+                Log.e("VoiceTutor", "Feedback failed", e)
+                updateInsight(message.id) {
+                    it.copy(feedbackLoading = false, error = e.message ?: "Ошибка разбора")
+                }
+            }
+        }
+    }
+
+    /**
+     * Разбирает ответ модели формата `Better: …` / `Note: …`.
+     * Модель маленькая и иногда игнорирует формат — тогда показываем весь текст
+     * как пояснение, а исправленный вариант оставляем самой репликой.
+     */
+    private fun parseFeedback(raw: String): Pair<String, String> {
+        val betterLine = Regex("(?im)^\\s*Better:\\s*(.+)$").find(raw)?.groupValues?.get(1)?.trim()
+        val noteLine = Regex("(?im)^\\s*Note:\\s*(.+)$").find(raw)?.groupValues?.get(1)?.trim()
+        return if (betterLine != null || noteLine != null) {
+            (betterLine ?: "").to(noteLine ?: "")
+        } else {
+            "".to(raw.trim())
         }
     }
 

@@ -1,6 +1,8 @@
 package com.example.englishvoicetutor.presentation.conversation
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -41,6 +45,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -60,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Message
+import com.example.englishvoicetutor.domain.model.MessageInsight
 import com.example.englishvoicetutor.domain.model.MessageRole
 import com.example.englishvoicetutor.domain.model.ModelDownloadState
 import com.example.englishvoicetutor.domain.model.VoiceUiState
@@ -77,6 +83,7 @@ fun ConversationScreen(
     val voiceState by viewModel.voiceState.collectAsState()
     val messages by viewModel.messages.collectAsState()
     val modelState by viewModel.modelDownloadState.collectAsState()
+    val insights by viewModel.insights.collectAsState()
 
     Scaffold(
         topBar = {
@@ -106,11 +113,14 @@ fun ConversationScreen(
             ActiveConversation(
                 modifier = Modifier.padding(padding),
                 messages = messages,
+                insights = insights,
                 voiceState = voiceState,
                 micPermissionGranted = micPermissionGranted,
                 onRequestMicPermission = onRequestMicPermission,
                 onMicTapped = viewModel::onMicTapped,
                 onTextSubmit = viewModel::onSpeechResult,
+                onTranslate = viewModel::translateMessage,
+                onReview = viewModel::reviewMessage,
                 modelState = modelState
             )
         }
@@ -181,11 +191,14 @@ private fun NewConversationForm(
 private fun ActiveConversation(
     modifier: Modifier = Modifier,
     messages: List<Message>,
+    insights: Map<Long, MessageInsight>,
     voiceState: VoiceUiState,
     micPermissionGranted: Boolean,
     onRequestMicPermission: () -> Unit,
     onMicTapped: () -> Unit,
     onTextSubmit: (String) -> Unit,
+    onTranslate: (Message) -> Unit,
+    onReview: (Message) -> Unit,
     modelState: ModelDownloadState,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -196,7 +209,12 @@ private fun ActiveConversation(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(messages, key = { it.id }) { message ->
-                    MessageBubble(message)
+                    MessageBubble(
+                        message = message,
+                        insight = insights[message.id],
+                        onTranslate = { onTranslate(message) },
+                        onReview = { onReview(message) }
+                    )
                 }
             }
             StatusLine(voiceState)
@@ -373,11 +391,18 @@ private fun StatusLine(voiceState: VoiceUiState) {
 }
 
 @Composable
-private fun MessageBubble(message: Message) {
+private fun MessageBubble(
+    message: Message,
+    insight: MessageInsight?,
+    onTranslate: () -> Unit,
+    onReview: () -> Unit,
+) {
     val isUser = message.role == MessageRole.USER
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
+    var expanded by rememberSaveable(message.id) { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
     ) {
         val shape = RoundedCornerShape(
             topStart = 20.dp,
@@ -385,6 +410,7 @@ private fun MessageBubble(message: Message) {
             bottomStart = if (isUser) 20.dp else 6.dp,
             bottomEnd = if (isUser) 6.dp else 20.dp
         )
+        // Тап по «пузырю» разворачивает панель подсказок под ним.
         Box(
             modifier = Modifier
                 .widthIn(max = 320.dp)
@@ -399,6 +425,7 @@ private fun MessageBubble(message: Message) {
                     if (isUser) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.surfaceContainerHigh
                 )
+                .clickable { expanded = !expanded }
                 .padding(horizontal = 16.dp, vertical = 11.dp)
         ) {
             Text(
@@ -408,5 +435,105 @@ private fun MessageBubble(message: Message) {
                 else MaterialTheme.colorScheme.onSurface
             )
         }
+
+        if (expanded) {
+            MessageInsightPanel(
+                isUser = isUser,
+                insight = insight,
+                onTranslate = onTranslate,
+                onReview = onReview
+            )
+        }
+    }
+}
+
+/** Панель под сообщением: перевод на русский и (для реплик учащегося) разбор ошибок. */
+@Composable
+private fun MessageInsightPanel(
+    isUser: Boolean,
+    insight: MessageInsight?,
+    onTranslate: () -> Unit,
+    onReview: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .widthIn(max = 320.dp)
+            .padding(top = 4.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            TextButton(onClick = onTranslate) {
+                Icon(
+                    Icons.Filled.Translate,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.size(4.dp))
+                Text("Перевод")
+            }
+            if (isUser) {
+                TextButton(onClick = onReview) {
+                    Icon(
+                        Icons.Filled.Spellcheck,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.size(4.dp))
+                    Text("Проверить")
+                }
+            }
+        }
+
+        val loading = insight?.translationLoading == true || insight?.feedbackLoading == true
+        if (loading) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    "Думаю…",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        insight?.translation?.let { translation ->
+            InsightRow(label = "Перевод", value = translation)
+        }
+        insight?.better?.takeIf { it.isNotBlank() }?.let { better ->
+            InsightRow(label = "Как лучше", value = better)
+        }
+        insight?.note?.takeIf { it.isNotBlank() }?.let { note ->
+            InsightRow(label = "Разбор", value = note)
+        }
+        insight?.error?.let { error ->
+            Text(
+                error,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun InsightRow(label: String, value: String) {
+    Column(modifier = Modifier.padding(top = 6.dp)) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
