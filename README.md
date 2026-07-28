@@ -4,19 +4,29 @@ Android-приложение — голосовой репетитор англ�
 
 Архитектура: Kotlin + Jetpack Compose, MVVM, Hilt, Room.
 
-Голосовой цикл: **микрофон → STT (Vosk) → LLM (Gemma 4 через LiteRT-LM) → TTS → сохранение в историю**.
+Голосовой цикл: **микрофон → STT (Whisper small.en через sherpa-onnx) → LLM (Gemma 4 через LiteRT-LM) → TTS → сохранение в историю**.
+
+## Скачать и установить
+
+Готовый APK — на вкладке [**Releases**](../../releases). Скачайте `.apk` из последнего релиза на Android-устройство и установите (потребуется разрешить установку из неизвестных источников).
+
+Что важно знать перед установкой:
+
+- **Только реальное устройство.** Нужны микрофон и GPU с OpenCL для LLM (ориентир — 8 ГБ ОЗУ). На эмуляторе не заработает.
+- **`minSdk 26`** (Android 8.0 и выше).
+- При первом запуске приложение **докачает модели** (LLM и STT) — на это нужна сеть один раз. Для LLM Gemma нужен токен HuggingFace; можно также указать свою прямую ссылку на модель `.litertlm` без токена. Подробности — ниже в разделе «Откуда качаются модели».
 
 ## Статус по компонентам
 
 | Компонент | Реализация | Детали |
 |---|---|---|
-| STT (распознавание речи) | `VoskSttEngine` — Vosk (`vosk-model-en-us-0.22-lgraph`) | Модель скачивается лениво при первом нажатии на микрофон, в `filesDir`. Push-to-talk: тап — старт, ещё тап — стоп. |
+| STT (распознавание речи) | `SherpaOnnxSttEngine` — Whisper `small.en` (int8) через sherpa-onnx | Модель скачивается лениво при первом нажатии на микрофон, в `filesDir`. Push-to-talk: тап — старт, ещё тап — стоп. |
 | LLM (репетитор) | `LiteRtLlmEngine` — Gemma 4 E2B через LiteRT-LM, backend GPU | Модель `~1.5 ГБ` скачивается на экране первого запуска (нужен токен HuggingFace). |
 | TTS (синтез речи) | `AndroidTtsEngine` — системный `TextToSpeech` | Работает из коробки. Озвучивает ответ целиком одним вызовом. |
 | История диалогов | Room (`Conversation`/`Message`), экран «История», продолжение разговора | В контекст LLM отдаются последние `20` сообщений (`RECENT_MESSAGES_FOR_CONTEXT`). |
 | Сценарий/уровень | Форма при старте диалога: текстовое поле сценария + выбор CEFR (A1–C2) | Системный промпт собирается в `TutorPrompt`. |
 
-> `StubTutorLlmEngine` и `AndroidSttEngine` ещё лежат в `data/engine/` как более простые альтернативы (заглушка LLM и системный `SpeechRecognizer`), но **в сборке не используются** — оба заменены на реальные движки в `di/AppModule.kt`.
+> `StubTutorLlmEngine`, `AndroidSttEngine` и `VoskSttEngine` ещё лежат в `data/engine/` как альтернативные реализации (заглушка LLM, системный `SpeechRecognizer`, Vosk-STT), но **в сборке не используются** — активные движки привязаны в `di/AppModule.kt`.
 
 ## Как открыть и запустить
 
@@ -30,7 +40,7 @@ Android-приложение — голосовой репетитор англ�
 ### Откуда качаются модели
 
 - **LLM:** каталог моделей и вариант «своя ссылка» — в `domain/model/LlmModelOption.kt` (`LlmModelCatalog`). Активный файл всегда `model.litertlm` в `filesDir`. Скачивание и подключение к движку — общий `data/model/ModelInstaller` (переиспользуют экраны настройки и настроек); загрузка резюмируемая (докачка через HTTP `Range`, только для той же модели). Токен HuggingFace добавляется в заголовок `Authorization` только для источников с `requiresToken`. Предустановленный вариант: `https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm`.
-- **STT:** `https://alphacephei.com/kaldi/models/vosk-model-en-us-0.22-lgraph.zip`, распаковывается в `filesDir`. URL — в `VoskSttEngine`.
+- **STT:** Whisper `small.en` (int8) — архив `sherpa-onnx-whisper-small.en.tar.bz2` с релизов `k2-fsa/sherpa-onnx`, распаковывается в `filesDir`. URL — в `SherpaOnnxSttEngine`.
 
 Готовность LLM определяется наличием файла `filesDir/model.litertlm` (см. `MainActivity` → `AppNavHost.isModelReady`).
 
@@ -74,10 +84,10 @@ app/src/main/java/com/example/englishvoicetutor/
 
 ```kotlin
 @Binds @Singleton
-abstract fun bindSttEngine(impl: VoskSttEngine): SttEngine     // ← сюда, напр., WhisperSttEngine
+abstract fun bindSttEngine(impl: SherpaOnnxSttEngine): SttEngine   // ← или VoskSttEngine / AndroidSttEngine
 
 @Binds @Singleton
-abstract fun bindLlmEngine(impl: LiteRtLlmEngine): LlmEngine   // ← или StubTutorLlmEngine для разработки UI без модели
+abstract fun bindLlmEngine(impl: LiteRtLlmEngine): LlmEngine       // ← или StubTutorLlmEngine для разработки UI без модели
 ```
 
 Чтобы разрабатывать UI без скачивания гигабайтной модели — верните `StubTutorLlmEngine` в `bindLlmEngine` (и, при желании, `AndroidSttEngine` в `bindSttEngine`), больше ничего менять не нужно.
