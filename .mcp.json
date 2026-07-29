@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "logcat": {
+      "command": "python3",
+      "args": [
+        "C:\\Users\\sverq\\logcat_mcp\\mcp_logcat.py"
+      ]
+    },
+    "web-search": {
+      "command": "npx",
+      "args": [
+        "open-websearch@latest"
+      ]
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "-lc",
+        "serena start-mcp-server --context claude-code --project-from-cwd --enable-web-dashboard false"
+      ],
+      "env": {}
+    }
+  }
+}

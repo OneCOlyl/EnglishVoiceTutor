@@ -1,5 +1,6 @@
 package com.example.englishvoicetutor.data.engine
 
+import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Message
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
@@ -33,4 +34,14 @@ class StubTutorLlmEngine @Inject constructor() : LlmEngine {
 
     override suspend fun summarize(history: List<Message>): String =
         "Stub summary of ${history.size} messages."
+
+    override suspend fun translateToRussian(text: String): String {
+        delay(300)
+        return "[перевод] $text"
+    }
+
+    override suspend fun feedback(text: String, level: CefrLevel): String {
+        delay(300)
+        return "Better: $text\nNote: Ошибок нет, звучит естественно."
+    }
 }

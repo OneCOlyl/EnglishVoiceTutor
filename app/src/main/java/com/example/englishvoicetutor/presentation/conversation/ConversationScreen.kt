@@ -1,5 +1,8 @@
 package com.example.englishvoicetutor.presentation.conversation
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,16 +10,24 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -24,6 +35,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,20 +45,27 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Message
+import com.example.englishvoicetutor.domain.model.MessageInsight
 import com.example.englishvoicetutor.domain.model.MessageRole
 import com.example.englishvoicetutor.domain.model.ModelDownloadState
 import com.example.englishvoicetutor.domain.model.VoiceUiState
@@ -64,16 +83,27 @@ fun ConversationScreen(
     val voiceState by viewModel.voiceState.collectAsState()
     val messages by viewModel.messages.collectAsState()
     val modelState by viewModel.modelDownloadState.collectAsState()
+    val insights by viewModel.insights.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(meta?.scenario ?: "New conversation") },
+                title = {
+                    Text(
+                        meta?.scenario ?: "New conversation",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
-                }
+                },
+                // Компактнее стандартного бара — чтобы шапка не съедала высоту диалога.
+                expandedHeight = 48.dp,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { padding ->
@@ -90,10 +120,14 @@ fun ConversationScreen(
             ActiveConversation(
                 modifier = Modifier.padding(padding),
                 messages = messages,
+                insights = insights,
                 voiceState = voiceState,
                 micPermissionGranted = micPermissionGranted,
                 onRequestMicPermission = onRequestMicPermission,
                 onMicTapped = viewModel::onMicTapped,
+                onTextSubmit = viewModel::onSpeechResult,
+                onTranslate = viewModel::translateMessage,
+                onReview = viewModel::reviewMessage,
                 modelState = modelState
             )
         }
@@ -164,44 +198,49 @@ private fun NewConversationForm(
 private fun ActiveConversation(
     modifier: Modifier = Modifier,
     messages: List<Message>,
+    insights: Map<Long, MessageInsight>,
     voiceState: VoiceUiState,
     micPermissionGranted: Boolean,
     onRequestMicPermission: () -> Unit,
     onMicTapped: () -> Unit,
+    onTextSubmit: (String) -> Unit,
+    onTranslate: (Message) -> Unit,
+    onReview: (Message, Message) -> Unit,
     modelState: ModelDownloadState,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        Column(modifier = modifier.fillMaxSize()) {
+        // Отступы Scaffold уже применены на внешнем Box; внутренний Column должен
+        // растягиваться на всю доступную высоту без повторного padding, иначе
+        // снизу под инпутом остаётся пустая полоса.
+        Column(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(messages, key = { it.id }) { message ->
-                    MessageBubble(message)
+                itemsIndexed(messages, key = { _, it -> it.id }) { index, message ->
+                    // «Проверить» живёт под ответом бота и разбирает предыдущую
+                    // реплику ученика — так разбор виден рядом с исправлением бота.
+                    val reviewTarget = if (message.role == MessageRole.TUTOR) {
+                        messages.subList(0, index).lastOrNull { it.role == MessageRole.USER }
+                    } else null
+                    MessageBubble(
+                        message = message,
+                        insight = insights[message.id],
+                        reviewTarget = reviewTarget,
+                        onTranslate = { onTranslate(message) },
+                        onReview = { reviewTarget?.let { onReview(message, it) } }
+                    )
                 }
             }
             StatusLine(voiceState)
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                val busy = voiceState !is VoiceUiState.Idle && voiceState !is VoiceUiState.Error
-                FloatingActionButton(
-                    onClick = { if (!micPermissionGranted) onRequestMicPermission() else onMicTapped() },
-                    containerColor = if (busy) MaterialTheme.colorScheme.surfaceVariant
-                    else MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    if (voiceState is VoiceUiState.Transcribing || voiceState is VoiceUiState.Thinking) {
-                        CircularProgressIndicator(modifier = Modifier.height(24.dp))
-                    } else {
-                        Icon(
-                            imageVector = if (voiceState is VoiceUiState.Recording) Icons.Filled.Stop else Icons.Filled.Mic,
-                            contentDescription = if (voiceState is VoiceUiState.Recording) "Остановить" else "Говорить"
-                        )
-                    }
-                }
-            }
+            InputBar(
+                voiceState = voiceState,
+                micPermissionGranted = micPermissionGranted,
+                onRequestMicPermission = onRequestMicPermission,
+                onMicTapped = onMicTapped,
+                onTextSubmit = onTextSubmit
+            )
         }
         if (modelState !is ModelDownloadState.Ready && modelState !is ModelDownloadState.Idle) {
             Surface(
@@ -253,6 +292,88 @@ private fun ActiveConversation(
 }
 
 @Composable
+private fun InputBar(
+    voiceState: VoiceUiState,
+    micPermissionGranted: Boolean,
+    onRequestMicPermission: () -> Unit,
+    onMicTapped: () -> Unit,
+    onTextSubmit: (String) -> Unit,
+) {
+    var text by rememberSaveable { mutableStateOf("") }
+    val busy = voiceState is VoiceUiState.Transcribing || voiceState is VoiceUiState.Thinking
+    val recording = voiceState is VoiceUiState.Recording
+    val hasText = text.isNotBlank()
+
+    fun submit() {
+        if (hasText) {
+            onTextSubmit(text.trim())
+            text = ""
+        }
+    }
+
+    val fabContainer = when {
+        busy -> MaterialTheme.colorScheme.surfaceContainerHighest
+        recording -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
+    }
+    val fabContent = when {
+        busy -> MaterialTheme.colorScheme.onSurfaceVariant
+        recording -> MaterialTheme.colorScheme.onError
+        else -> MaterialTheme.colorScheme.onPrimary
+    }
+
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Введите сообщение…") },
+                enabled = !busy && !recording,
+                maxLines = 4,
+                shape = RoundedCornerShape(24.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = { submit() })
+            )
+            FloatingActionButton(
+                onClick = {
+                    when {
+                        busy -> {}
+                        hasText -> submit()
+                        !micPermissionGranted -> onRequestMicPermission()
+                        else -> onMicTapped()
+                    }
+                },
+                modifier = Modifier.size(52.dp),
+                containerColor = fabContainer,
+                contentColor = fabContent,
+                elevation = FloatingActionButtonDefaults.elevation(2.dp, 4.dp, 2.dp, 2.dp)
+            ) {
+                when {
+                    busy -> CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    hasText -> Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Отправить")
+                    recording -> Icon(Icons.Filled.Stop, contentDescription = "Остановить")
+                    else -> Icon(Icons.Filled.Mic, contentDescription = "Говорить")
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun StatusLine(voiceState: VoiceUiState) {
     val text = when (voiceState) {
         is VoiceUiState.Idle -> "Нажмите на микрофон и говорите по-английски"
@@ -263,28 +384,173 @@ private fun StatusLine(voiceState: VoiceUiState) {
         is VoiceUiState.Speaking -> "Репетитор отвечает…"
         is VoiceUiState.Error -> "Ошибка: ${voiceState.message}"
     }
-    Text(
-        text = text,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.bodyMedium
-    )
+    val isError = voiceState is VoiceUiState.Error
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(
+                    if (isError) MaterialTheme.colorScheme.errorContainer
+                    else MaterialTheme.colorScheme.surfaceContainerHigh
+                )
+                .padding(horizontal = 14.dp, vertical = 5.dp),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (isError) MaterialTheme.colorScheme.onErrorContainer
+            else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 @Composable
-private fun MessageBubble(message: Message) {
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = if (message.role == MessageRole.USER) Alignment.CenterEnd else Alignment.CenterStart
+private fun MessageBubble(
+    message: Message,
+    insight: MessageInsight?,
+    reviewTarget: Message?,
+    onTranslate: () -> Unit,
+    onReview: () -> Unit,
+) {
+    val isUser = message.role == MessageRole.USER
+    var expanded by rememberSaveable(message.id) { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
     ) {
-        Card(modifier = Modifier.fillMaxWidth(0.85f)) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = if (message.role == MessageRole.USER) "Вы" else "Репетитор",
-                    style = MaterialTheme.typography.labelSmall
+        val shape = RoundedCornerShape(
+            topStart = 20.dp,
+            topEnd = 20.dp,
+            bottomStart = if (isUser) 20.dp else 6.dp,
+            bottomEnd = if (isUser) 6.dp else 20.dp
+        )
+        // Тап по «пузырю» разворачивает панель подсказок под ним.
+        Box(
+            modifier = Modifier
+                .widthIn(max = 320.dp)
+                .shadow(
+                    elevation = if (isUser) 3.dp else 1.dp,
+                    shape = shape,
+                    ambientColor = MaterialTheme.colorScheme.primary,
+                    spotColor = MaterialTheme.colorScheme.primary
                 )
-                Text(text = message.text)
+                .clip(shape)
+                .background(
+                    if (isUser) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.surfaceContainerHigh
+                )
+                .clickable { expanded = !expanded }
+                .padding(horizontal = 16.dp, vertical = 11.dp)
+        ) {
+            Text(
+                text = message.text,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (isUser) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        if (expanded) {
+            MessageInsightPanel(
+                canReview = reviewTarget != null,
+                insight = insight,
+                onTranslate = onTranslate,
+                onReview = onReview
+            )
+        }
+    }
+}
+
+/** Панель под сообщением: перевод на русский и (под ответом бота) разбор реплики ученика. */
+@Composable
+private fun MessageInsightPanel(
+    canReview: Boolean,
+    insight: MessageInsight?,
+    onTranslate: () -> Unit,
+    onReview: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .widthIn(max = 320.dp)
+            .padding(top = 4.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            TextButton(onClick = onTranslate) {
+                Icon(
+                    Icons.Filled.Translate,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.size(4.dp))
+                Text("Перевод")
+            }
+            if (canReview) {
+                TextButton(onClick = onReview) {
+                    Icon(
+                        Icons.Filled.Spellcheck,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.size(4.dp))
+                    Text("Проверить")
+                }
             }
         }
+
+        val loading = insight?.translationLoading == true || insight?.feedbackLoading == true
+        if (loading) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    "Думаю…",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        insight?.translation?.let { translation ->
+            InsightRow(label = "Перевод", value = translation)
+        }
+        insight?.better?.takeIf { it.isNotBlank() }?.let { better ->
+            InsightRow(label = "Как лучше", value = better)
+        }
+        insight?.note?.takeIf { it.isNotBlank() }?.let { note ->
+            InsightRow(label = "Разбор", value = note)
+        }
+        insight?.error?.let { error ->
+            Text(
+                error,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun InsightRow(label: String, value: String) {
+    Column(modifier = Modifier.padding(top = 6.dp)) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

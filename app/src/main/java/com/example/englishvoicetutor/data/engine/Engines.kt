@@ -1,5 +1,6 @@
 package com.example.englishvoicetutor.data.engine
 
+import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Message
 import kotlinx.coroutines.flow.Flow
 
@@ -34,4 +35,14 @@ interface LlmEngine {
 
     /** Короткая суммаризация для схлопывания старой части длинного диалога (см. п.4.1 плана). */
     suspend fun summarize(history: List<Message>): String
+
+    /** Перевод произвольной реплики на русский — для кнопки «Перевод» под сообщением. */
+    suspend fun translateToRussian(text: String): String
+
+    /**
+     * Разбор реплики учащегося: исправленный вариант + краткое пояснение.
+     * Возвращает сырой текст ответа модели в формате `Better: …` / `Note: …`;
+     * парсинг для UI — на стороне вьюмодели.
+     */
+    suspend fun feedback(text: String, level: CefrLevel): String
 }
