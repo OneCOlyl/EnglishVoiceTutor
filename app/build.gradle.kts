@@ -20,6 +20,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            // Первый публичный релиз подписываем debug-ключом: APK устанавливается
+            // на любом устройстве, секреты хранить не нужно. Для будущих обновлений
+            // с апдейтом «поверх» понадобится постоянный release-keystore.
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

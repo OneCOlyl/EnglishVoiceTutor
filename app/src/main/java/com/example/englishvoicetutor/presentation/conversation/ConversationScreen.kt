@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -88,12 +88,19 @@ fun ConversationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(meta?.scenario ?: "New conversation") },
+                title = {
+                    Text(
+                        meta?.scenario ?: "New conversation",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 },
+                // Компактнее стандартного бара — чтобы шапка не съедала высоту диалога.
+                expandedHeight = 48.dp,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -198,22 +205,31 @@ private fun ActiveConversation(
     onMicTapped: () -> Unit,
     onTextSubmit: (String) -> Unit,
     onTranslate: (Message) -> Unit,
-    onReview: (Message) -> Unit,
+    onReview: (Message, Message) -> Unit,
     modelState: ModelDownloadState,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        Column(modifier = modifier.fillMaxSize()) {
+        // Отступы Scaffold уже применены на внешнем Box; внутренний Column должен
+        // растягиваться на всю доступную высоту без повторного padding, иначе
+        // снизу под инпутом остаётся пустая полоса.
+        Column(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(messages, key = { it.id }) { message ->
+                itemsIndexed(messages, key = { _, it -> it.id }) { index, message ->
+                    // «Проверить» живёт под ответом бота и разбирает предыдущую
+                    // реплику ученика — так разбор виден рядом с исправлением бота.
+                    val reviewTarget = if (message.role == MessageRole.TUTOR) {
+                        messages.subList(0, index).lastOrNull { it.role == MessageRole.USER }
+                    } else null
                     MessageBubble(
                         message = message,
                         insight = insights[message.id],
+                        reviewTarget = reviewTarget,
                         onTranslate = { onTranslate(message) },
-                        onReview = { onReview(message) }
+                        onReview = { reviewTarget?.let { onReview(message, it) } }
                     )
                 }
             }
@@ -313,7 +329,7 @@ private fun InputBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -381,9 +397,9 @@ private fun StatusLine(voiceState: VoiceUiState) {
                     if (isError) MaterialTheme.colorScheme.errorContainer
                     else MaterialTheme.colorScheme.surfaceContainerHigh
                 )
-                .padding(horizontal = 16.dp, vertical = 6.dp),
+                .padding(horizontal = 14.dp, vertical = 5.dp),
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = if (isError) MaterialTheme.colorScheme.onErrorContainer
             else MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -394,6 +410,7 @@ private fun StatusLine(voiceState: VoiceUiState) {
 private fun MessageBubble(
     message: Message,
     insight: MessageInsight?,
+    reviewTarget: Message?,
     onTranslate: () -> Unit,
     onReview: () -> Unit,
 ) {
@@ -438,7 +455,7 @@ private fun MessageBubble(
 
         if (expanded) {
             MessageInsightPanel(
-                isUser = isUser,
+                canReview = reviewTarget != null,
                 insight = insight,
                 onTranslate = onTranslate,
                 onReview = onReview
@@ -447,10 +464,10 @@ private fun MessageBubble(
     }
 }
 
-/** Панель под сообщением: перевод на русский и (для реплик учащегося) разбор ошибок. */
+/** Панель под сообщением: перевод на русский и (под ответом бота) разбор реплики ученика. */
 @Composable
 private fun MessageInsightPanel(
-    isUser: Boolean,
+    canReview: Boolean,
     insight: MessageInsight?,
     onTranslate: () -> Unit,
     onReview: () -> Unit,
@@ -473,7 +490,7 @@ private fun MessageInsightPanel(
                 Spacer(Modifier.size(4.dp))
                 Text("Перевод")
             }
-            if (isUser) {
+            if (canReview) {
                 TextButton(onClick = onReview) {
                     Icon(
                         Icons.Filled.Spellcheck,

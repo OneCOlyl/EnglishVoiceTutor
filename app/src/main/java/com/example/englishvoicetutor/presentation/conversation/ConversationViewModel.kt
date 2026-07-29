@@ -200,23 +200,27 @@ class ConversationViewModel @Inject constructor(
         }
     }
 
-    /** Разбор ошибок в реплике учащегося + подсказка «как лучше сказать». */
-    fun reviewMessage(message: Message) {
-        val current = _insights.value[message.id]
+    /**
+     * Разбор ошибок в реплике учащегося + подсказка «как лучше сказать».
+     * [anchor] — сообщение, под которым показываем результат (ответ бота),
+     * [target] — реплика ученика, которую фактически проверяем.
+     */
+    fun reviewMessage(anchor: Message, target: Message) {
+        val current = _insights.value[anchor.id]
         if (current?.better != null || current?.feedbackLoading == true) return
         val meta = _conversationMeta.value ?: return
         viewModelScope.launch {
-            updateInsight(message.id) { it.copy(feedbackLoading = true, error = null) }
+            updateInsight(anchor.id) { it.copy(feedbackLoading = true, error = null) }
             try {
                 modelInstaller.ensureInitialized()
-                val raw = llmEngine.feedback(message.text, meta.cefrLevel)
+                val raw = llmEngine.feedback(target.text, meta.cefrLevel)
                 val (better, note) = parseFeedback(raw)
-                updateInsight(message.id) {
+                updateInsight(anchor.id) {
                     it.copy(better = better, note = note, feedbackLoading = false)
                 }
             } catch (e: Exception) {
                 Log.e("VoiceTutor", "Feedback failed", e)
-                updateInsight(message.id) {
+                updateInsight(anchor.id) {
                     it.copy(feedbackLoading = false, error = e.message ?: "Ошибка разбора")
                 }
             }
