@@ -42,10 +42,19 @@ object LlmModelCatalog {
         LlmModelOption(
             id = "gemma-4-e2b",
             displayName = "Gemma 4 E2B (рекомендуется)",
-            description = "HuggingFace, ~2.4 ГБ. Нужен бесплатный токен и принятая " +
+            description = "HuggingFace, ~2.6 ГБ. Нужен бесплатный токен и принятая " +
                     "лицензия litert-community/gemma-4-E2B-it-litert-lm.",
             url = "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/" +
                     "resolve/main/gemma-4-E2B-it.litertlm",
+            requiresToken = true,
+        ),
+        LlmModelOption(
+            id = "gemma-4-e4b",
+            displayName = "Gemma 4 E4B (для мощных устройств)",
+            description = "HuggingFace, ~3.7 ГБ. Отвечает содержательнее E2B, но требует " +
+                    "12+ ГБ ОЗУ и рабочий GPU — на слабых устройствах не запустится.",
+            url = "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/" +
+                    "resolve/main/gemma-4-E4B-it.litertlm",
             requiresToken = true,
         ),
     )
