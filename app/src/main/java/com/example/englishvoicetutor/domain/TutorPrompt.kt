@@ -11,13 +11,26 @@ import com.example.englishvoicetutor.domain.model.CefrLevel
 object TutorPrompt {
 
     /**
+     * Учебный фокус диалога, когда он запущен из темы курса.
+     *
+     * Правила намеренно передаём не текстом объяснения (оно на русском и только
+     * запутает маленькую модель), а готовыми английскими примерами-образцами:
+     * модель гораздо надёжнее копирует структуру, чем следует метаописанию.
+     */
+    data class TopicFocus(
+        val topicTitle: String,
+        val targetWords: List<String>,
+        val targetStructures: List<String>
+    )
+
+    /**
      * Системный промпт для основного диалога.
      * Держим его коротким и предельно конкретным: маленькая модель (Gemma 4 E2B)
      * плохо держит длинные и абстрактные инструкции, поэтому правила даём
      * императивно, с примерами формата, и явно запрещаем то, что ломает
      * голосовой формат (списки, разметку, эмодзи, метакомментарии).
      */
-    fun system(level: CefrLevel, scenario: String): String = buildString {
+    fun system(level: CefrLevel, scenario: String, focus: TopicFocus? = null): String = buildString {
         appendLine("You are Alex, a warm and encouraging English conversation partner.")
         appendLine("You are having a SPOKEN role-play conversation with a learner.")
         appendLine("Scenario: $scenario.")
@@ -36,6 +49,26 @@ object TutorPrompt {
         appendLine("Never do this:")
         appendLine("- No lists, no markdown, no emoji, no stage directions, no translations.")
         appendLine("- Do not write the learner's lines for them or continue past your own turn.")
+
+        if (focus != null) {
+            appendLine()
+            appendLine("This is a lesson on: ${focus.topicTitle}.")
+            if (focus.targetWords.isNotEmpty()) {
+                appendLine(
+                    "Weave these words into your replies naturally, a few per turn: " +
+                        focus.targetWords.joinToString(", ") + "."
+                )
+                appendLine("Ask questions that make the learner use these words too.")
+            }
+            if (focus.targetStructures.isNotEmpty()) {
+                appendLine("Model these sentence patterns in your own speech:")
+                focus.targetStructures.forEach { appendLine("  $it") }
+                appendLine(
+                    "If the learner breaks one of these patterns, recast it correctly " +
+                        "inside your reply — still without explaining grammar."
+                )
+            }
+        }
     }
 
     /** Подсказка по сложности языка под уровень — подставляется в системный промпт. */
@@ -73,6 +106,37 @@ object TutorPrompt {
         appendLine("Note: <one short explanation IN RUSSIAN of what was wrong; if nothing was wrong, write \"Ошибок нет, звучит естественно.\">")
         appendLine()
         appendLine("Sentence: $text")
+    }
+
+    /**
+     * Ещё один пример к правилу («не понял — покажи иначе»).
+     * Образцы даём самими предложениями из статического контента: так модель
+     * копирует нужную конструкцию, а не изобретает своё понимание правила.
+     */
+    fun extraExample(patterns: List<String>, level: CefrLevel): String = buildString {
+        appendLine("Here are example sentences that all follow the same English grammar pattern:")
+        patterns.forEach { appendLine("- $it") }
+        appendLine()
+        appendLine("Write ONE new sentence that follows exactly the same pattern.")
+        appendLine("Use simple everyday vocabulary suitable for a CEFR $level learner.")
+        appendLine("Reply in EXACTLY this format, nothing else:")
+        appendLine("En: <the new English sentence>")
+        appendLine("Ru: <its Russian translation>")
+    }
+
+    /**
+     * Проверка того, как учащийся употребил новое слово в своей фразе
+     * (кнопка «сказать предложение» в карточке слова).
+     */
+    fun wordUsage(word: String, sentence: String, level: CefrLevel): String = buildString {
+        appendLine("A CEFR $level learner is practising the English word \"$word\".")
+        appendLine("They produced this sentence: \"$sentence\"")
+        appendLine()
+        appendLine("Decide whether the sentence uses \"$word\" correctly and sounds natural.")
+        appendLine("Reply in EXACTLY this format, nothing else:")
+        appendLine("Verdict: ok | wrong")
+        appendLine("Better: <the most natural version of their sentence>")
+        appendLine("Note: <one short comment IN RUSSIAN; if everything is fine, praise briefly>")
     }
 
     /** Короткий промпт для фоновой суммаризации старой части длинного диалога (см. п.4.1). */

@@ -11,11 +11,15 @@ import com.example.englishvoicetutor.data.engine.LlmEngine
 import com.example.englishvoicetutor.data.engine.SttEngine
 import com.example.englishvoicetutor.data.engine.SherpaOnnxSttEngine
 import com.example.englishvoicetutor.data.engine.TtsEngine
+import com.example.englishvoicetutor.data.engine.TtsStatus
 import com.example.englishvoicetutor.data.model.ModelInstaller
 import com.example.englishvoicetutor.data.repository.ConversationRepository
+import com.example.englishvoicetutor.data.repository.CurriculumRepository
+import com.example.englishvoicetutor.data.repository.VocabularyRepository
 import com.example.englishvoicetutor.domain.TutorPrompt
 import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Conversation
+import com.example.englishvoicetutor.domain.model.LearningTopic
 import com.example.englishvoicetutor.domain.model.Message
 import com.example.englishvoicetutor.domain.model.MessageInsight
 import com.example.englishvoicetutor.domain.model.MessageRole
@@ -44,11 +48,29 @@ class ConversationViewModel @Inject constructor(
     private val llmEngine: LlmEngine,
     private val sttModelEngine: SherpaOnnxSttEngine,
     private val modelInstaller: ModelInstaller,
+    private val curriculumRepository: CurriculumRepository,
+    private val vocabularyRepository: VocabularyRepository,
 ) : ViewModel() {
 
     private val navArgId: Long = savedStateHandle.get<Long>("conversationId") ?: NEW_CONVERSATION_ID
+
+    /** Тема курса, из которой открыт экран (передаётся навигацией при старте нового диалога). */
+    private val navArgTopicId: String? = savedStateHandle.get<String>("topicId")?.takeIf { it.isNotBlank() }
     val isNewConversation: Boolean = navArgId == NEW_CONVERSATION_ID
+
+    /** Тема текущего диалога — источник учебного фокуса для системного промпта. */
+    private val _topic = MutableStateFlow<LearningTopic?>(null)
+    val topic: StateFlow<LearningTopic?> = _topic.asStateFlow()
+
+    /** Диалог по теме засчитываем один раз за сессию, а не на каждую реплику. */
+    private var practiceRegistered = false
     val modelDownloadState: StateFlow<ModelDownloadState> = sttModelEngine.downloadState
+
+    /**
+     * Состояние озвучки: при первом ответе репетитора может качаться голос (~75 МБ),
+     * и экран обязан это показать — иначе реплика молча остаётся только текстом.
+     */
+    val ttsStatus: StateFlow<TtsStatus> = ttsEngine.status
 
     private val _conversationId = MutableStateFlow(navArgId.takeIf { it != NEW_CONVERSATION_ID })
     private val _conversationMeta = MutableStateFlow<Conversation?>(null)
@@ -78,7 +100,20 @@ class ConversationViewModel @Inject constructor(
     init {
         if (!isNewConversation) {
             viewModelScope.launch {
-                _conversationMeta.value = repository.getConversation(navArgId)
+                val meta = repository.getConversation(navArgId)
+                _conversationMeta.value = meta
+                meta?.topicId?.let { _topic.value = curriculumRepository.topic(it) }
+            }
+        }
+        // Диалог запущен из темы курса — подставляем её сценарий и уровень
+        // в форму старта, чтобы пользователю не пришлось ничего вводить.
+        if (isNewConversation && navArgTopicId != null) {
+            viewModelScope.launch {
+                curriculumRepository.topic(navArgTopicId)?.let { topic ->
+                    _topic.value = topic
+                    scenarioInput = topic.scenario
+                    levelInput = topic.level
+                }
             }
         }
         // Прогреваем LLM заранее: после рестарта приложения модель есть на диске,
@@ -93,7 +128,7 @@ class ConversationViewModel @Inject constructor(
 
     fun startNewConversation() {
         viewModelScope.launch {
-            val conversation = repository.createConversation(scenarioInput, levelInput)
+            val conversation = repository.createConversation(scenarioInput, levelInput, navArgTopicId)
             _conversationMeta.value = conversation
             _conversationId.value = conversation.id
         }
@@ -150,7 +185,7 @@ class ConversationViewModel @Inject constructor(
                 // гарантируем, что движок подключён, прежде чем звать LLM.
                 modelInstaller.ensureInitialized()
                 Log.d("VoiceTutor", "Calling LLM...")
-                val systemPrompt = TutorPrompt.system(meta.cefrLevel, meta.scenario)
+                val systemPrompt = TutorPrompt.system(meta.cefrLevel, meta.scenario, buildFocus(meta))
                 val history = repository.getContextForResume(convId)
 
                 val replyBuilder = StringBuilder()
@@ -162,6 +197,7 @@ class ConversationViewModel @Inject constructor(
                 }
 
                 repository.appendMessage(convId, MessageRole.TUTOR, replyText)
+                registerTopicPracticeOnce(meta.topicId)
                 _voiceState.value = VoiceUiState.Speaking(replyText)
                 ttsEngine.speak(replyText)
                 _voiceState.value = VoiceUiState.Idle
@@ -171,6 +207,30 @@ class ConversationViewModel @Inject constructor(
                 _voiceState.value = VoiceUiState.Error(e.message ?: "Ошибка ответа репетитора")
             }
         }
+    }
+
+    /**
+     * Собирает учебный фокус для системного промпта: невыученные слова темы
+     * и эталонные предложения из её правил. Для свободного диалога — null.
+     */
+    private suspend fun buildFocus(meta: Conversation): TutorPrompt.TopicFocus? {
+        val topicId = meta.topicId ?: return null
+        val topic = _topic.value ?: curriculumRepository.topic(topicId)?.also { _topic.value = it }
+        ?: return null
+        return TutorPrompt.TopicFocus(
+            topicTitle = topic.titleEn,
+            targetWords = vocabularyRepository.wordsToPractise(topicId),
+            // Берём по одному эталону на правило: длинный список примеров
+            // маленькая модель начинает цитировать дословно вместо разговора.
+            targetStructures = topic.rules.mapNotNull { it.examples.firstOrNull()?.en }
+        )
+    }
+
+    /** Засчитываем практику по теме после первого полноценного обмена репликами. */
+    private suspend fun registerTopicPracticeOnce(topicId: String?) {
+        if (topicId == null || practiceRegistered) return
+        practiceRegistered = true
+        curriculumRepository.registerTopicPractice(topicId)
     }
 
     private fun updateInsight(messageId: Long, transform: (MessageInsight) -> MessageInsight) {

@@ -1,0 +1,255 @@
+{
+  "level": "A1",
+  "topics": [
+    {
+      "id": "a1-greetings",
+      "order": 1,
+      "titleRu": "Знакомство и приветствие",
+      "titleEn": "Greetings and introductions",
+      "goalRu": "Поздороваться, назвать своё имя, откуда вы, и спросить то же самое у собеседника.",
+      "scenario": "Meeting someone new at a language club and introducing yourself",
+      "vocabulary": [
+        { "word": "hello", "ru": "привет, здравствуйте", "ipa": "/həˈloʊ/", "exEn": "Hello, my name is Anna.", "exRu": "Здравствуйте, меня зовут Анна." },
+        { "word": "nice to meet you", "ru": "приятно познакомиться", "ipa": "/naɪs tə ˈmiːt juː/", "exEn": "Nice to meet you, Tom.", "exRu": "Приятно познакомиться, Том." },
+        { "word": "name", "ru": "имя", "ipa": "/neɪm/", "exEn": "What is your name?", "exRu": "Как вас зовут?" },
+        { "word": "from", "ru": "из (откуда)", "ipa": "/frʌm/", "exEn": "I am from Russia.", "exRu": "Я из России." },
+        { "word": "friend", "ru": "друг, подруга", "ipa": "/frend/", "exEn": "This is my friend Kate.", "exRu": "Это моя подруга Катя." },
+        { "word": "how are you", "ru": "как дела", "ipa": "/haʊ ɑːr juː/", "exEn": "Hi Mark, how are you?", "exRu": "Привет, Марк, как дела?" },
+        { "word": "goodbye", "ru": "до свидания", "ipa": "/ɡʊdˈbaɪ/", "exEn": "Goodbye, see you tomorrow.", "exRu": "До свидания, увидимся завтра." },
+        { "word": "please", "ru": "пожалуйста (просьба)", "ipa": "/pliːz/", "exEn": "Say that again, please.", "exRu": "Повторите, пожалуйста." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Глагол to be: am / is / are",
+          "summaryRu": "В английском предложении всегда есть глагол — даже там, где в русском его нет.",
+          "explanationRu": "По-русски мы говорим «Я студент», «Она дома» — без глагола. В английском так нельзя: связка обязательна. I → am, he/she/it → is, you/we/they → are. Эта же связка используется для имени, возраста, профессии, места и состояния. Вопрос строится перестановкой: You are ready → Are you ready? Отрицание — частицей not: I am not ready.",
+          "pitfallRu": "Самая частая ошибка русскоязычных — выбросить связку: «I student» вместо «I am a student». Возраст тоже через to be: не «I have 25 years», а «I am 25».",
+          "examples": [
+            { "en": "I am a student.", "ru": "Я студент.", "wrong": "I student." },
+            { "en": "She is from Italy.", "ru": "Она из Италии.", "wrong": "She from Italy." },
+            { "en": "Are you ready?", "ru": "Ты готов?", "wrong": "You are ready?" },
+            { "en": "We are not late.", "ru": "Мы не опоздали.", "wrong": "We not late." }
+          ]
+        },
+        {
+          "titleRu": "Личные местоимения",
+          "summaryRu": "В английском подлежащее нельзя опустить — местоимение нужно всегда.",
+          "explanationRu": "I, you, he, she, it, we, they. По-русски можно сказать «Работаю в банке» без «я», в английском подлежащее обязательно: I work in a bank. Обратите внимание: I всегда пишется с большой буквы, а для неодушевлённых предметов и животных используется it.",
+          "pitfallRu": "Пропуск подлежащего («Is very good» вместо «It is very good») — калька с русского, звучит незаконченно.",
+          "examples": [
+            { "en": "It is a good book.", "ru": "Это хорошая книга.", "wrong": "Is a good book." },
+            { "en": "They live in London.", "ru": "Они живут в Лондоне.", "wrong": "Live in London." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1-family",
+      "order": 2,
+      "titleRu": "Семья и близкие",
+      "titleEn": "Family and people close to you",
+      "goalRu": "Рассказать о своей семье: кто есть, сколько лет, чем занимаются.",
+      "scenario": "Showing family photos to a new colleague and talking about your relatives",
+      "vocabulary": [
+        { "word": "family", "ru": "семья", "ipa": "/ˈfæməli/", "exEn": "I have a big family.", "exRu": "У меня большая семья." },
+        { "word": "parents", "ru": "родители", "ipa": "/ˈperənts/", "exEn": "My parents live in Kazan.", "exRu": "Мои родители живут в Казани." },
+        { "word": "brother", "ru": "брат", "ipa": "/ˈbrʌðər/", "exEn": "My brother is a doctor.", "exRu": "Мой брат — врач." },
+        { "word": "sister", "ru": "сестра", "ipa": "/ˈsɪstər/", "exEn": "My sister is younger than me.", "exRu": "Моя сестра младше меня." },
+        { "word": "wife", "ru": "жена", "ipa": "/waɪf/", "exEn": "His wife works at a school.", "exRu": "Его жена работает в школе." },
+        { "word": "husband", "ru": "муж", "ipa": "/ˈhʌzbənd/", "exEn": "Her husband cooks very well.", "exRu": "Её муж очень хорошо готовит." },
+        { "word": "child / children", "ru": "ребёнок / дети", "ipa": "/tʃaɪld/ /ˈtʃɪldrən/", "exEn": "They have two children.", "exRu": "У них двое детей." },
+        { "word": "married", "ru": "женат, замужем", "ipa": "/ˈmerid/", "exEn": "My sister is married.", "exRu": "Моя сестра замужем." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Притяжательный падеж: 's и my/your/his/her",
+          "summaryRu": "Принадлежность выражается апострофом с s или притяжательным местоимением.",
+          "explanationRu": "«Сестра Тома» — Tom's sister: сначала владелец, потом предмет. Если владельцев несколько и слово уже во множественном числе на -s, апостроф ставится после: my parents' house. Притяжательные местоимения: my, your, his, her, its, our, their — они ставятся вместо артикля, а не вместе с ним.",
+          "pitfallRu": "Русскоязычные часто строят конструкцию через of: «the sister of Tom». Для людей это звучит неестественно — нужен апостроф. И нельзя сказать «the my brother»: местоимение уже заменяет артикль.",
+          "examples": [
+            { "en": "This is Tom's sister.", "ru": "Это сестра Тома.", "wrong": "This is the sister of Tom." },
+            { "en": "My brother is a doctor.", "ru": "Мой брат — врач.", "wrong": "The my brother is a doctor." },
+            { "en": "My parents' house is old.", "ru": "Дом моих родителей старый.", "wrong": "My parents's house is old." }
+          ]
+        },
+        {
+          "titleRu": "have / has: «у меня есть»",
+          "summaryRu": "Русское «у меня есть» передаётся глаголом have, а не конструкцией с to be.",
+          "explanationRu": "I / you / we / they → have, he / she / it → has. Вопрос и отрицание в разговорной речи строятся через do/does: Do you have a car? I don't have a car.",
+          "pitfallRu": "Калька «At me is a car» — грубая ошибка. Также помните про has для he/she/it: «He have a dog» — типичная ошибка уровня A1.",
+          "examples": [
+            { "en": "I have two children.", "ru": "У меня двое детей.", "wrong": "At me two children." },
+            { "en": "She has a big family.", "ru": "У неё большая семья.", "wrong": "She have a big family." },
+            { "en": "Do you have a brother?", "ru": "У тебя есть брат?", "wrong": "You have a brother?" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1-food-drinks",
+      "order": 3,
+      "titleRu": "Еда и напитки",
+      "titleEn": "Food and drinks",
+      "goalRu": "Сказать, что вы любите и не любите есть, и попросить что-то за столом.",
+      "scenario": "Having breakfast with a host family and talking about food you like",
+      "vocabulary": [
+        { "word": "breakfast", "ru": "завтрак", "ipa": "/ˈbrekfəst/", "exEn": "I have breakfast at eight.", "exRu": "Я завтракаю в восемь." },
+        { "word": "bread", "ru": "хлеб", "ipa": "/bred/", "exEn": "Can I have some bread?", "exRu": "Можно мне хлеба?" },
+        { "word": "water", "ru": "вода", "ipa": "/ˈwɔːtər/", "exEn": "I drink a lot of water.", "exRu": "Я пью много воды." },
+        { "word": "coffee", "ru": "кофе", "ipa": "/ˈkɔːfi/", "exEn": "She likes coffee without sugar.", "exRu": "Она любит кофе без сахара." },
+        { "word": "vegetables", "ru": "овощи", "ipa": "/ˈvedʒtəbəlz/", "exEn": "Vegetables are good for you.", "exRu": "Овощи полезны." },
+        { "word": "delicious", "ru": "очень вкусный", "ipa": "/dɪˈlɪʃəs/", "exEn": "This soup is delicious.", "exRu": "Этот суп очень вкусный." },
+        { "word": "hungry", "ru": "голодный", "ipa": "/ˈhʌŋɡri/", "exEn": "I am hungry.", "exRu": "Я голоден." },
+        { "word": "to try", "ru": "попробовать", "ipa": "/traɪ/", "exEn": "Try this cake, it is great.", "exRu": "Попробуй этот торт, он отличный." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Артикли a / an и исчисляемые существительные",
+          "summaryRu": "Перед исчисляемым словом в единственном числе артикль обязателен.",
+          "explanationRu": "a ставится перед согласным звуком, an — перед гласным: a cup, an apple. Важно, что ориентируемся на звук, а не на букву: an hour (h не читается), a university (звучит как «ю»). Артикль a/an означает «один из многих, какой-то», the — «тот самый, о котором мы уже знаем».",
+          "pitfallRu": "В русском артиклей нет, поэтому их просто забывают: «I want apple». Для слушателя это звучит так же странно, как «Хочу яблок» вместо «Хочу яблоко».",
+          "examples": [
+            { "en": "I want an apple.", "ru": "Я хочу яблоко.", "wrong": "I want apple." },
+            { "en": "She is a teacher.", "ru": "Она учительница.", "wrong": "She is teacher." },
+            { "en": "We waited an hour.", "ru": "Мы ждали час.", "wrong": "We waited a hour." }
+          ]
+        },
+        {
+          "titleRu": "some / any и неисчисляемые слова",
+          "summaryRu": "Вода, хлеб, деньги — неисчисляемые: без a и без множественного числа.",
+          "explanationRu": "Такие слова (water, bread, money, advice, information) не имеют формы множественного числа и не берут артикль a. Количество показывается через some (в утверждении) и any (в вопросе и отрицании): I need some water. Do you have any bread? Порция считается через меру: a glass of water, a piece of bread.",
+          "pitfallRu": "«I need informations», «a money» — частая ошибка: в русском эти слова ведут себя иначе. Запомните: information, money, advice, news всегда в единственном числе.",
+          "examples": [
+            { "en": "Can I have some water?", "ru": "Можно мне воды?", "wrong": "Can I have a water?" },
+            { "en": "I need some advice.", "ru": "Мне нужен совет.", "wrong": "I need an advice." },
+            { "en": "Do we have any bread?", "ru": "У нас есть хлеб?", "wrong": "Do we have some breads?" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1-daily-routine",
+      "order": 4,
+      "titleRu": "Распорядок дня",
+      "titleEn": "Daily routine",
+      "goalRu": "Описать обычный день: во сколько встаёте, что делаете, когда ложитесь.",
+      "scenario": "Telling a new friend what your typical weekday looks like",
+      "vocabulary": [
+        { "word": "to get up", "ru": "вставать (с постели)", "ipa": "/ɡet ʌp/", "exEn": "I get up at seven.", "exRu": "Я встаю в семь." },
+        { "word": "to go to work", "ru": "ходить на работу", "ipa": "/ɡoʊ tə wɜːrk/", "exEn": "He goes to work by bus.", "exRu": "Он ездит на работу на автобусе." },
+        { "word": "usually", "ru": "обычно", "ipa": "/ˈjuːʒuəli/", "exEn": "I usually have lunch at one.", "exRu": "Обычно я обедаю в час." },
+        { "word": "always", "ru": "всегда", "ipa": "/ˈɔːlweɪz/", "exEn": "She always drinks tea in the morning.", "exRu": "Она всегда пьёт чай утром." },
+        { "word": "never", "ru": "никогда", "ipa": "/ˈnevər/", "exEn": "I never watch TV.", "exRu": "Я никогда не смотрю телевизор." },
+        { "word": "in the evening", "ru": "вечером", "ipa": "/ɪn ðə ˈiːvnɪŋ/", "exEn": "In the evening I read.", "exRu": "Вечером я читаю." },
+        { "word": "to go to bed", "ru": "ложиться спать", "ipa": "/ɡoʊ tə bed/", "exEn": "We go to bed late.", "exRu": "Мы ложимся спать поздно." },
+        { "word": "free time", "ru": "свободное время", "ipa": "/friː taɪm/", "exEn": "I have free time on Sunday.", "exRu": "У меня есть свободное время в воскресенье." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Present Simple: окончание -s в третьем лице",
+          "summaryRu": "He, she, it требуют -s у глагола — и это самая частая ошибка A1.",
+          "explanationRu": "Present Simple описывает регулярное, привычное действие: I work, you work, но he works, she works, it works. Окончание -es добавляется после -o, -ch, -sh, -s, -x: he goes, she watches. В вопросе и отрицании -s уходит к вспомогательному глаголу does: Does he work? He doesn't work.",
+          "pitfallRu": "Двойная ошибка «Does he works?» — если появилось does, основной глагол остаётся в начальной форме.",
+          "examples": [
+            { "en": "She works in a bank.", "ru": "Она работает в банке.", "wrong": "She work in a bank." },
+            { "en": "He goes to school by bus.", "ru": "Он ездит в школу на автобусе.", "wrong": "He go to school by bus." },
+            { "en": "Does he work here?", "ru": "Он здесь работает?", "wrong": "Does he works here?" }
+          ]
+        },
+        {
+          "titleRu": "Наречия частотности и их место в предложении",
+          "summaryRu": "always, usually, often, never стоят перед смысловым глаголом, но после to be.",
+          "explanationRu": "Правильный порядок: I always drink coffee (перед обычным глаголом), но He is always late (после am/is/are). Наречия времени вроде every day, in the morning обычно ставятся в конец предложения.",
+          "pitfallRu": "«I drink always coffee» — порядок слов из русского. В английском наречие частотности не разрывает глагол и дополнение.",
+          "examples": [
+            { "en": "I always drink coffee.", "ru": "Я всегда пью кофе.", "wrong": "I drink always coffee." },
+            { "en": "He is never angry.", "ru": "Он никогда не злится.", "wrong": "He never is angry." },
+            { "en": "We go there every day.", "ru": "Мы ходим туда каждый день.", "wrong": "We every day go there." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1-shopping",
+      "order": 5,
+      "titleRu": "Покупки",
+      "titleEn": "Shopping",
+      "goalRu": "Спросить цену, размер и наличие, вежливо купить нужное.",
+      "scenario": "Buying a jacket in a clothes shop and asking about size and price",
+      "vocabulary": [
+        { "word": "how much", "ru": "сколько (стоит)", "ipa": "/haʊ mʌtʃ/", "exEn": "How much is this jacket?", "exRu": "Сколько стоит эта куртка?" },
+        { "word": "price", "ru": "цена", "ipa": "/praɪs/", "exEn": "The price is too high.", "exRu": "Цена слишком высокая." },
+        { "word": "cheap", "ru": "дешёвый", "ipa": "/tʃiːp/", "exEn": "These shoes are cheap.", "exRu": "Эти туфли дешёвые." },
+        { "word": "expensive", "ru": "дорогой", "ipa": "/ɪkˈspensɪv/", "exEn": "That phone is expensive.", "exRu": "Тот телефон дорогой." },
+        { "word": "size", "ru": "размер", "ipa": "/saɪz/", "exEn": "Do you have a bigger size?", "exRu": "У вас есть размер побольше?" },
+        { "word": "to try on", "ru": "примерить", "ipa": "/traɪ ɒn/", "exEn": "Can I try it on?", "exRu": "Можно это примерить?" },
+        { "word": "to pay", "ru": "платить", "ipa": "/peɪ/", "exEn": "I want to pay by card.", "exRu": "Я хочу заплатить картой." },
+        { "word": "change", "ru": "сдача", "ipa": "/tʃeɪndʒ/", "exEn": "Here is your change.", "exRu": "Вот ваша сдача." }
+      ],
+      "rules": [
+        {
+          "titleRu": "this / that / these / those",
+          "summaryRu": "Указательные слова различают близкое и далёкое, единственное и множественное.",
+          "explanationRu": "this — этот (рядом), that — тот (дальше), these — эти, those — те. В магазине они нужны постоянно: How much is this? I like those shoes. Важно, что shoes, trousers, glasses, jeans всегда множественные, поэтому с ними идут these/those и are.",
+          "pitfallRu": "«this shoes» вместо «these shoes» и «this trousers is» вместо «these trousers are» — очень заметные ошибки.",
+          "examples": [
+            { "en": "These shoes are nice.", "ru": "Эти туфли красивые.", "wrong": "This shoes is nice." },
+            { "en": "How much is that bag?", "ru": "Сколько стоит та сумка?", "wrong": "How much that bag?" }
+          ]
+        },
+        {
+          "titleRu": "How much и How many",
+          "summaryRu": "How much — для неисчисляемого и для цены, how many — для того, что можно посчитать.",
+          "explanationRu": "How much water? How much does it cost? — неисчисляемое и стоимость. How many bottles? How many people? — штуки. Вопрос о цене обычно строится так: How much is it? или How much does it cost?",
+          "pitfallRu": "«How much apples» вместо «How many apples». И не стоит говорить «How much costs it?» — в вопросе с does глагол не меняется: How much does it cost?",
+          "examples": [
+            { "en": "How many apples do you need?", "ru": "Сколько яблок тебе нужно?", "wrong": "How much apples do you need?" },
+            { "en": "How much does it cost?", "ru": "Сколько это стоит?", "wrong": "How much costs it?" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1-directions",
+      "order": 6,
+      "titleRu": "Город и как найти дорогу",
+      "titleEn": "In the city and asking for directions",
+      "goalRu": "Спросить дорогу, понять ответ и описать, где что находится.",
+      "scenario": "You are lost in a city centre and ask a passer-by how to get to the station",
+      "vocabulary": [
+        { "word": "excuse me", "ru": "извините (обращение)", "ipa": "/ɪkˈskjuːz miː/", "exEn": "Excuse me, where is the station?", "exRu": "Извините, где вокзал?" },
+        { "word": "street", "ru": "улица", "ipa": "/striːt/", "exEn": "I live on this street.", "exRu": "Я живу на этой улице." },
+        { "word": "to turn left", "ru": "повернуть налево", "ipa": "/tɜːrn left/", "exEn": "Turn left at the bank.", "exRu": "Поверните налево у банка." },
+        { "word": "straight on", "ru": "прямо", "ipa": "/streɪt ɒn/", "exEn": "Go straight on for two minutes.", "exRu": "Идите прямо две минуты." },
+        { "word": "near", "ru": "рядом, около", "ipa": "/nɪr/", "exEn": "The hotel is near the park.", "exRu": "Отель рядом с парком." },
+        { "word": "between", "ru": "между", "ipa": "/bɪˈtwiːn/", "exEn": "It is between the shop and the café.", "exRu": "Это между магазином и кафе." },
+        { "word": "far", "ru": "далеко", "ipa": "/fɑːr/", "exEn": "Is it far from here?", "exRu": "Это далеко отсюда?" },
+        { "word": "corner", "ru": "угол", "ipa": "/ˈkɔːrnər/", "exEn": "The café is on the corner.", "exRu": "Кафе на углу." }
+      ],
+      "rules": [
+        {
+          "titleRu": "There is / There are",
+          "summaryRu": "Так сообщают о наличии чего-либо в месте: «здесь есть...».",
+          "explanationRu": "There is — для единственного числа и неисчисляемого, there are — для множественного: There is a bank near here. There are two cafés on this street. Отрицание: There isn't a metro here. Вопрос: Is there a pharmacy nearby?",
+          "pitfallRu": "Русскоязычные говорят «Here is a bank» или «In this street are two cafés» — конструкцию с there забывают, хотя именно она передаёт русское «есть / имеется».",
+          "examples": [
+            { "en": "There is a bank near here.", "ru": "Здесь рядом есть банк.", "wrong": "Here is a bank near." },
+            { "en": "There are two cafés on this street.", "ru": "На этой улице два кафе.", "wrong": "On this street are two cafés." },
+            { "en": "Is there a pharmacy nearby?", "ru": "Здесь рядом есть аптека?", "wrong": "There is a pharmacy nearby?" }
+          ]
+        },
+        {
+          "titleRu": "Предлоги места: in / on / at",
+          "summaryRu": "in — внутри, on — на поверхности, at — в точке.",
+          "explanationRu": "in the room, in the city, in Moscow — внутри пространства. on the table, on the wall, on the second floor — на поверхности. at the station, at the door, at work — в конкретной точке или у объекта. Для улиц британцы говорят in the street, американцы — on the street; оба варианта поймут.",
+          "pitfallRu": "«in the picture» против «on the photo» — по-английски обычно in the picture / in the photo. И «at Monday» — неверно, дни недели идут с on.",
+          "examples": [
+            { "en": "I am at the station.", "ru": "Я на вокзале.", "wrong": "I am in the station." },
+            { "en": "The book is on the table.", "ru": "Книга на столе.", "wrong": "The book is in the table." },
+            { "en": "We live in Moscow.", "ru": "Мы живём в Москве.", "wrong": "We live at Moscow." }
+          ]
+        }
+      ]
+    }
+  ]
+}

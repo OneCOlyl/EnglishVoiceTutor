@@ -9,6 +9,7 @@ import android.media.audiofx.AcousticEchoCanceler
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.util.Log
+import com.example.englishvoicetutor.data.model.ArchiveModelDownloader
 import com.example.englishvoicetutor.domain.model.ModelDownloadState
 import com.k2fsa.sherpa.onnx.OfflineModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
@@ -20,10 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import java.io.File
-import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,36 +39,14 @@ private const val MODEL_DIR_NAME = "sherpa-onnx-nemo-parakeet-unified-en-0.6b-in
 // модели чистилась сама, без правок кода.
 private val MODEL_DIR_PREFIXES = listOf("sherpa-onnx-", "vosk-model-")
 
-// Доли общей шкалы прогресса: скачивание → распаковка → загрузка в память. Раньше распаковка
-// шла без прогресса, и пользователь видел скачок 0 → 99 на несколько минут.
-private const val DOWNLOAD_PROGRESS_END = 80
-private const val UNPACK_PROGRESS_END = 98
-
 private const val TMP_ARCHIVE_NAME = "model_tmp.tar.bz2"
 private const val SAMPLE_RATE = 16_000
 private const val TAG = "SherpaOnnxSttEngine"
 
-/** Считает, сколько байт архива уже прочитано, — по этому и рисуем прогресс распаковки. */
-private class CountingInputStream(
-    private val delegate: java.io.InputStream
-) : java.io.InputStream() {
-
-    @Volatile var bytesRead = 0L
-        private set
-
-    override fun read(): Int = delegate.read().also { if (it != -1) bytesRead++ }
-
-    override fun read(b: ByteArray, off: Int, len: Int): Int =
-        delegate.read(b, off, len).also { if (it > 0) bytesRead += it }
-
-    override fun available(): Int = delegate.available()
-
-    override fun close() = delegate.close()
-}
-
 @Singleton
 class SherpaOnnxSttEngine @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val downloader: ArchiveModelDownloader,
 ) : SttEngine {
 
     @Volatile
@@ -101,7 +77,15 @@ class SherpaOnnxSttEngine @Inject constructor(
         if (!modelReady) {
             modelDir.deleteRecursively()
             try {
-                downloadAndUnpack(MODEL_URL, context.filesDir)
+                downloader.downloadAndUnpack(
+                    url = MODEL_URL,
+                    destDir = context.filesDir,
+                    tmpArchiveName = TMP_ARCHIVE_NAME,
+                    // В архиве кроме весов лежат тестовые wav-ы и карточки модели —
+                    // на устройстве они не нужны.
+                    skipEntry = { it.contains("/test_wavs/") || it.endsWith(".md") },
+                    onState = { _downloadState.value = it },
+                )
             } catch (e: Exception) {
                 _downloadState.value = ModelDownloadState.Error(e.message ?: "Ошибка загрузки")
                 throw e
@@ -269,114 +253,5 @@ class SherpaOnnxSttEngine @Inject constructor(
                 AcousticEchoCanceler.create(sessionId)?.enabled = false
             }
         }.onFailure { Log.w(TAG, "AEC off failed", it) }
-    }
-
-    private fun downloadAndUnpack(url: String, destDir: File) {
-        val logs = mutableListOf<String>()
-
-        fun log(msg: String) {
-            logs.add(msg)
-            _downloadState.value = ModelDownloadState.Downloading(0, logs.toList())
-        }
-
-        log("Подключаемся к серверу…")
-
-        var currentUrl = url
-        lateinit var stream: java.io.InputStream
-        var totalBytes = -1L
-
-        repeat(5) {
-            val conn = java.net.URL(currentUrl).openConnection() as java.net.HttpURLConnection
-            conn.instanceFollowRedirects = false
-            conn.connect()
-            val code = conn.responseCode
-            if (code in 300..399) {
-                currentUrl = conn.getHeaderField("Location")
-                conn.disconnect()
-            } else {
-                totalBytes = conn.contentLengthLong
-                stream = conn.inputStream.buffered()
-                return@repeat
-            }
-        }
-
-        log("Скачиваем модель…")
-
-        // Сохраняем архив во временный файл, считая прогресс.
-        val tmpArchive = File(destDir, TMP_ARCHIVE_NAME)
-        var downloaded = 0L
-        stream.use { input ->
-            FileOutputStream(tmpArchive).use { output ->
-                val buf = ByteArray(8192)
-                var n: Int
-                while (input.read(buf).also { n = it } != -1) {
-                    output.write(buf, 0, n)
-                    downloaded += n
-                    if (totalBytes > 0) {
-                        val pct = (downloaded * DOWNLOAD_PROGRESS_END / totalBytes).toInt()
-                        val mb = downloaded / 1024 / 1024
-                        val totalMb = totalBytes / 1024 / 1024
-                        _downloadState.value = ModelDownloadState.Downloading(
-                            pct,
-                            logs + "Загружено: $mb из $totalMb МБ"
-                        )
-                    }
-                }
-            }
-        }
-
-        log("Распаковываем архив…")
-        // Распаковка 500 МБ bzip2 на телефоне занимает минуты, поэтому считаем прогресс по
-        // прочитанной части архива — иначе полоса стоит на месте и кажется, что всё зависло.
-        val archiveBytes = tmpArchive.length()
-        val counting = CountingInputStream(tmpArchive.inputStream().buffered())
-        var lastReportedPct = -1
-
-        fun reportUnpackProgress() {
-            if (archiveBytes <= 0) return
-            val span = UNPACK_PROGRESS_END - DOWNLOAD_PROGRESS_END
-            val pct = DOWNLOAD_PROGRESS_END + (counting.bytesRead * span / archiveBytes).toInt()
-            if (pct != lastReportedPct) {
-                lastReportedPct = pct
-                val mb = counting.bytesRead / 1024 / 1024
-                _downloadState.value = ModelDownloadState.Downloading(
-                    pct.coerceAtMost(UNPACK_PROGRESS_END),
-                    logs + "Распаковано: $mb из ${archiveBytes / 1024 / 1024} МБ"
-                )
-            }
-        }
-
-        // Архив: bzip2 → tar. Внутри всё лежит под каталогом MODEL_DIR_NAME/.
-        TarArchiveInputStream(BZip2CompressorInputStream(counting)).use { tar ->
-            var entry = tar.nextEntry
-            while (entry != null) {
-                // В архиве кроме весов лежат тестовые wav-ы и карточки модели — на устройстве
-                // они не нужны, распаковываем только то, что читает OfflineRecognizer.
-                if (entry.name.contains("/test_wavs/") || entry.name.endsWith(".md")) {
-                    entry = tar.nextEntry
-                    continue
-                }
-                val outFile = File(destDir, entry.name)
-                if (entry.isDirectory) {
-                    outFile.mkdirs()
-                } else {
-                    outFile.parentFile?.mkdirs()
-                    // Копируем вручную, а не через copyTo: энкодер весит 650 МБ, и прогресс
-                    // надо обновлять по ходу файла, а не только между записями архива.
-                    FileOutputStream(outFile).use { output ->
-                        val buf = ByteArray(64 * 1024)
-                        var n: Int
-                        while (tar.read(buf).also { n = it } != -1) {
-                            output.write(buf, 0, n)
-                            reportUnpackProgress()
-                        }
-                    }
-                }
-                entry = tar.nextEntry
-            }
-        }
-        counting.close()
-        tmpArchive.delete()
-        log("Готово!")
     }
 }

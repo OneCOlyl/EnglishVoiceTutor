@@ -1,0 +1,239 @@
+{
+  "level": "A2",
+  "topics": [
+    {
+      "id": "a2-past-weekend",
+      "order": 1,
+      "titleRu": "Рассказ о прошлом",
+      "titleEn": "Talking about the past",
+      "goalRu": "Рассказать, как прошли выходные или отпуск, в прошедшем времени.",
+      "scenario": "Telling a colleague on Monday morning what you did at the weekend",
+      "vocabulary": [
+        { "word": "yesterday", "ru": "вчера", "ipa": "/ˈjestərdeɪ/", "exEn": "I met Tom yesterday.", "exRu": "Я встретил Тома вчера." },
+        { "word": "last weekend", "ru": "в прошлые выходные", "ipa": "/læst ˈwiːkend/", "exEn": "Last weekend we went to the lake.", "exRu": "В прошлые выходные мы ездили на озеро." },
+        { "word": "to stay", "ru": "оставаться, остановиться", "ipa": "/steɪ/", "exEn": "We stayed at home.", "exRu": "Мы остались дома." },
+        { "word": "to visit", "ru": "навещать, посещать", "ipa": "/ˈvɪzɪt/", "exEn": "I visited my grandmother.", "exRu": "Я навестил бабушку." },
+        { "word": "boring", "ru": "скучный", "ipa": "/ˈbɔːrɪŋ/", "exEn": "The film was boring.", "exRu": "Фильм был скучный." },
+        { "word": "amazing", "ru": "потрясающий", "ipa": "/əˈmeɪzɪŋ/", "exEn": "The concert was amazing.", "exRu": "Концерт был потрясающий." },
+        { "word": "ago", "ru": "назад (о времени)", "ipa": "/əˈɡoʊ/", "exEn": "We moved here two years ago.", "exRu": "Мы переехали сюда два года назад." },
+        { "word": "to have fun", "ru": "хорошо провести время", "ipa": "/hæv fʌn/", "exEn": "We had a lot of fun.", "exRu": "Мы отлично повеселились." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Past Simple: правильные и неправильные глаголы",
+          "summaryRu": "Прошедшее время: -ed у правильных глаголов, своя форма у неправильных.",
+          "explanationRu": "Правильные глаголы: work → worked, stay → stayed, study → studied. Неправильные надо запоминать: go → went, have → had, see → saw, make → made. В вопросе и отрицании появляется did, и тогда основной глагол возвращается в начальную форму: Did you go? I didn't go.",
+          "pitfallRu": "«I didn't went» — самая типичная ошибка A2. Did уже несёт прошедшее время, второй раз его показывать не нужно.",
+          "examples": [
+            { "en": "I went to the cinema.", "ru": "Я ходил в кино.", "wrong": "I goed to the cinema." },
+            { "en": "Did you see that film?", "ru": "Ты видел тот фильм?", "wrong": "Did you saw that film?" },
+            { "en": "She didn't come yesterday.", "ru": "Она вчера не пришла.", "wrong": "She didn't came yesterday." }
+          ]
+        },
+        {
+          "titleRu": "Маркеры прошедшего времени",
+          "summaryRu": "yesterday, last week, in 2019, two days ago требуют Past Simple.",
+          "explanationRu": "Если в предложении есть точная точка в прошлом, время только прошедшее: I saw him yesterday. Обратите внимание на порядок в конструкции с ago: количество времени идёт перед словом ago — three days ago, а не ago three days.",
+          "pitfallRu": "Сочетание точного времени с Present Perfect («I have seen him yesterday») — ошибка, которая тянется у русскоязычных до уровня B1.",
+          "examples": [
+            { "en": "I saw him yesterday.", "ru": "Я видел его вчера.", "wrong": "I have seen him yesterday." },
+            { "en": "They left three days ago.", "ru": "Они уехали три дня назад.", "wrong": "They left ago three days." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a2-travel",
+      "order": 2,
+      "titleRu": "Путешествия и транспорт",
+      "titleEn": "Travel and transport",
+      "goalRu": "Купить билет, зарегистрироваться в отеле, рассказать о планах поездки.",
+      "scenario": "Checking in at a hotel reception and asking about the trip to the airport",
+      "vocabulary": [
+        { "word": "ticket", "ru": "билет", "ipa": "/ˈtɪkɪt/", "exEn": "I booked a ticket online.", "exRu": "Я купил билет онлайн." },
+        { "word": "to book", "ru": "бронировать", "ipa": "/bʊk/", "exEn": "We booked a room for two nights.", "exRu": "Мы забронировали номер на две ночи." },
+        { "word": "flight", "ru": "рейс, перелёт", "ipa": "/flaɪt/", "exEn": "My flight leaves at six.", "exRu": "Мой рейс вылетает в шесть." },
+        { "word": "luggage", "ru": "багаж", "ipa": "/ˈlʌɡɪdʒ/", "exEn": "Where can I leave my luggage?", "exRu": "Где я могу оставить багаж?" },
+        { "word": "to catch (a train)", "ru": "успеть на (поезд)", "ipa": "/kætʃ/", "exEn": "I need to catch the 7 o'clock train.", "exRu": "Мне нужно успеть на семичасовой поезд." },
+        { "word": "abroad", "ru": "за границу, за границей", "ipa": "/əˈbrɔːd/", "exEn": "They travel abroad every summer.", "exRu": "Они ездят за границу каждое лето." },
+        { "word": "on foot", "ru": "пешком", "ipa": "/ɒn fʊt/", "exEn": "It is ten minutes on foot.", "exRu": "Это десять минут пешком." },
+        { "word": "to get to", "ru": "добраться до", "ipa": "/ɡet tuː/", "exEn": "How can I get to the airport?", "exRu": "Как мне добраться до аэропорта?" }
+      ],
+      "rules": [
+        {
+          "titleRu": "be going to: планы и намерения",
+          "summaryRu": "Решение, принятое заранее, выражается через be going to.",
+          "explanationRu": "I am going to visit my family next month — план уже есть. Формула: am/is/are + going to + начальная форма глагола. Will используется для решений, принятых прямо сейчас, и для предположений: I will help you (решил сию секунду).",
+          "pitfallRu": "«I going to visit» без связки am — частая ошибка. И для расписаний (поезда, рейсы) англичане используют Present Simple: The train leaves at six.",
+          "examples": [
+            { "en": "I am going to travel to Spain.", "ru": "Я собираюсь поехать в Испанию.", "wrong": "I going to travel to Spain." },
+            { "en": "The train leaves at six.", "ru": "Поезд отправляется в шесть.", "wrong": "The train will leave at six every day." }
+          ]
+        },
+        {
+          "titleRu": "Предлоги транспорта: by и on",
+          "summaryRu": "by bus, by train, by car — но on foot и on the bus, когда вы внутри.",
+          "explanationRu": "Способ передвижения в общем виде — by: by bus, by plane, by car, by taxi. Артикль при этом не ставится. Исключение: on foot. Если речь о конкретном транспортном средстве, где вы находитесь, используют on/in: on the bus, in the car.",
+          "pitfallRu": "«by foot» вместо «on foot» и «by the bus» с артиклем — две устойчивые ошибки.",
+          "examples": [
+            { "en": "I go to work by bus.", "ru": "Я езжу на работу на автобусе.", "wrong": "I go to work by the bus." },
+            { "en": "It is ten minutes on foot.", "ru": "Это десять минут пешком.", "wrong": "It is ten minutes by foot." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a2-health",
+      "order": 3,
+      "titleRu": "Здоровье и самочувствие",
+      "titleEn": "Health and how you feel",
+      "goalRu": "Объяснить врачу, что болит, и понять рекомендации.",
+      "scenario": "Describing your symptoms to a doctor at a clinic abroad",
+      "vocabulary": [
+        { "word": "to hurt", "ru": "болеть (о части тела)", "ipa": "/hɜːrt/", "exEn": "My back hurts.", "exRu": "У меня болит спина." },
+        { "word": "headache", "ru": "головная боль", "ipa": "/ˈhedeɪk/", "exEn": "I have a bad headache.", "exRu": "У меня сильно болит голова." },
+        { "word": "temperature", "ru": "температура", "ipa": "/ˈtemprətʃər/", "exEn": "She has a high temperature.", "exRu": "У неё высокая температура." },
+        { "word": "medicine", "ru": "лекарство", "ipa": "/ˈmedɪsɪn/", "exEn": "Take this medicine twice a day.", "exRu": "Принимайте это лекарство дважды в день." },
+        { "word": "to feel better", "ru": "чувствовать себя лучше", "ipa": "/fiːl ˈbetər/", "exEn": "I feel better today.", "exRu": "Сегодня мне лучше." },
+        { "word": "tired", "ru": "уставший", "ipa": "/ˈtaɪərd/", "exEn": "I am very tired.", "exRu": "Я очень устал." },
+        { "word": "appointment", "ru": "приём, запись (к врачу)", "ipa": "/əˈpɔɪntmənt/", "exEn": "I have an appointment at four.", "exRu": "У меня приём в четыре." },
+        { "word": "to get well", "ru": "поправиться", "ipa": "/ɡet wel/", "exEn": "Get well soon!", "exRu": "Скорее поправляйся!" }
+      ],
+      "rules": [
+        {
+          "titleRu": "should: совет и рекомендация",
+          "summaryRu": "should + начальная форма глагола, без to и без -s.",
+          "explanationRu": "You should see a doctor — тебе стоит сходить к врачу. После should никогда не бывает to и никогда не появляется -s в третьем лице: He should rest. Отрицание — shouldn't. Вопрос строится перестановкой: Should I call him?",
+          "pitfallRu": "«You should to go» и «He shoulds» — типичные ошибки. Модальные глаголы вообще не меняют форму.",
+          "examples": [
+            { "en": "You should see a doctor.", "ru": "Тебе стоит сходить к врачу.", "wrong": "You should to see a doctor." },
+            { "en": "He should rest today.", "ru": "Ему стоит сегодня отдохнуть.", "wrong": "He shoulds rest today." }
+          ]
+        },
+        {
+          "titleRu": "have to и must",
+          "summaryRu": "must — внутренняя необходимость, have to — необходимость по обстоятельствам.",
+          "explanationRu": "I must stop smoking — я сам так решил. I have to work on Saturday — так сложились обстоятельства. Важнейшее различие в отрицании: mustn't — запрет («нельзя»), don't have to — отсутствие необходимости («не обязательно»).",
+          "pitfallRu": "Путаница mustn't и don't have to меняет смысл на противоположный: «You mustn't come» — тебе нельзя приходить, «You don't have to come» — можешь не приходить.",
+          "examples": [
+            { "en": "I have to work on Saturday.", "ru": "Мне приходится работать в субботу.", "wrong": "I must to work on Saturday." },
+            { "en": "You don't have to come.", "ru": "Тебе не обязательно приходить.", "wrong": "You mustn't come if you don't want." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a2-work-study",
+      "order": 4,
+      "titleRu": "Работа и учёба",
+      "titleEn": "Work and study",
+      "goalRu": "Рассказать о своей работе, обязанностях и о том, чем заняты прямо сейчас.",
+      "scenario": "Explaining your job and what you are working on right now to a new team member",
+      "vocabulary": [
+        { "word": "job", "ru": "работа (должность)", "ipa": "/dʒɒb/", "exEn": "I like my job.", "exRu": "Мне нравится моя работа." },
+        { "word": "colleague", "ru": "коллега", "ipa": "/ˈkɒliːɡ/", "exEn": "My colleagues are very friendly.", "exRu": "Мои коллеги очень дружелюбные." },
+        { "word": "meeting", "ru": "встреча, совещание", "ipa": "/ˈmiːtɪŋ/", "exEn": "We have a meeting at ten.", "exRu": "У нас встреча в десять." },
+        { "word": "to be responsible for", "ru": "отвечать за", "ipa": "/rɪˈspɒnsəbəl/", "exEn": "I am responsible for reports.", "exRu": "Я отвечаю за отчёты." },
+        { "word": "deadline", "ru": "срок сдачи", "ipa": "/ˈdedlaɪn/", "exEn": "The deadline is Friday.", "exRu": "Срок — пятница." },
+        { "word": "to learn", "ru": "учить, узнавать", "ipa": "/lɜːrn/", "exEn": "I am learning English.", "exRu": "Я учу английский." },
+        { "word": "experience", "ru": "опыт", "ipa": "/ɪkˈspɪriəns/", "exEn": "She has five years of experience.", "exRu": "У неё пять лет опыта." },
+        { "word": "salary", "ru": "зарплата", "ipa": "/ˈsæləri/", "exEn": "The salary is good.", "exRu": "Зарплата хорошая." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Present Continuous против Present Simple",
+          "summaryRu": "Simple — вообще и регулярно, Continuous — прямо сейчас или временно.",
+          "explanationRu": "I work in a bank — это моя работа в принципе. I am working on a new project — этим я занят в данный период. Формула Continuous: am/is/are + глагол с -ing. Слова now, at the moment, today, this week тянут за собой Continuous.",
+          "pitfallRu": "Глаголы состояния (know, want, like, understand, need, believe) не ставятся в Continuous: «I am knowing» — ошибка, нужно «I know».",
+          "examples": [
+            { "en": "I am working on a new project.", "ru": "Я работаю над новым проектом.", "wrong": "I work on a new project right now." },
+            { "en": "I know what you mean.", "ru": "Я понимаю, о чём ты.", "wrong": "I am knowing what you mean." },
+            { "en": "She usually starts at nine.", "ru": "Обычно она начинает в девять.", "wrong": "She is usually starting at nine." }
+          ]
+        },
+        {
+          "titleRu": "work / job и другие ловушки перевода",
+          "summaryRu": "work — неисчисляемое, job — конкретная должность.",
+          "explanationRu": "I have a lot of work — много работы (неисчисляемое, без a). I have a good job — конкретная должность (с артиклем). Похожая пара: I study at university (учусь как процесс) и I am a student.",
+          "pitfallRu": "«I have a work» — ошибка, которую слышно сразу. Нужно либо «I have a job», либо «I have work to do».",
+          "examples": [
+            { "en": "I have a good job.", "ru": "У меня хорошая работа.", "wrong": "I have a good work." },
+            { "en": "I have a lot of work today.", "ru": "У меня сегодня много работы.", "wrong": "I have a lot of works today." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a2-restaurant",
+      "order": 5,
+      "titleRu": "В кафе и ресторане",
+      "titleEn": "At a café and restaurant",
+      "goalRu": "Заказать еду вежливо, уточнить состав блюда, попросить счёт.",
+      "scenario": "Ordering dinner in a restaurant and asking the waiter about the dishes",
+      "vocabulary": [
+        { "word": "menu", "ru": "меню", "ipa": "/ˈmenjuː/", "exEn": "Can I see the menu, please?", "exRu": "Можно меню, пожалуйста?" },
+        { "word": "to order", "ru": "заказывать", "ipa": "/ˈɔːrdər/", "exEn": "We would like to order now.", "exRu": "Мы хотели бы сделать заказ." },
+        { "word": "starter", "ru": "закуска", "ipa": "/ˈstɑːrtər/", "exEn": "I will have a soup as a starter.", "exRu": "На закуску я возьму суп." },
+        { "word": "main course", "ru": "основное блюдо", "ipa": "/meɪn kɔːrs/", "exEn": "What is the main course?", "exRu": "Что на основное блюдо?" },
+        { "word": "the bill", "ru": "счёт", "ipa": "/ðə bɪl/", "exEn": "Could we have the bill, please?", "exRu": "Можно нам счёт, пожалуйста?" },
+        { "word": "to recommend", "ru": "рекомендовать", "ipa": "/ˌrekəˈmend/", "exEn": "What do you recommend?", "exRu": "Что вы посоветуете?" },
+        { "word": "spicy", "ru": "острый", "ipa": "/ˈspaɪsi/", "exEn": "Is this dish spicy?", "exRu": "Это блюдо острое?" },
+        { "word": "to be allergic to", "ru": "иметь аллергию на", "ipa": "/əˈlɜːrdʒɪk/", "exEn": "I am allergic to nuts.", "exRu": "У меня аллергия на орехи." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Вежливые просьбы: would like, could, may",
+          "summaryRu": "I want звучит грубо — в обслуживании используют I would like.",
+          "explanationRu": "I would like a coffee (часто сокращается до I'd like) — вежливый эквивалент «я хотел бы». Просьбы: Could you bring the bill, please? Can — тоже нормально, но could мягче. После would like идёт либо существительное, либо to + глагол: I'd like to order.",
+          "pitfallRu": "«I want coffee» в ресторане звучит как приказ. И частая ошибка формы: «I would like to a coffee» — либо to + глагол, либо существительное без to.",
+          "examples": [
+            { "en": "I'd like a coffee, please.", "ru": "Я бы хотел кофе, пожалуйста.", "wrong": "I want coffee." },
+            { "en": "Could you bring the bill?", "ru": "Не могли бы вы принести счёт?", "wrong": "Bring me the bill." },
+            { "en": "I'd like to order now.", "ru": "Я бы хотел сделать заказ.", "wrong": "I'd like order now." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a2-weather-plans",
+      "order": 6,
+      "titleRu": "Погода, сравнения и планы",
+      "titleEn": "Weather, comparisons and plans",
+      "goalRu": "Сравнивать вещи и места, обсуждать погоду и договариваться о встрече.",
+      "scenario": "Planning a weekend trip with a friend and comparing two possible places",
+      "vocabulary": [
+        { "word": "weather", "ru": "погода", "ipa": "/ˈweðər/", "exEn": "The weather is nice today.", "exRu": "Сегодня хорошая погода." },
+        { "word": "warm", "ru": "тёплый", "ipa": "/wɔːrm/", "exEn": "It is warmer than yesterday.", "exRu": "Сегодня теплее, чем вчера." },
+        { "word": "rain", "ru": "дождь; идти (о дожде)", "ipa": "/reɪn/", "exEn": "It is going to rain.", "exRu": "Будет дождь." },
+        { "word": "crowded", "ru": "многолюдный", "ipa": "/ˈkraʊdɪd/", "exEn": "The beach is very crowded.", "exRu": "Пляж очень многолюдный." },
+        { "word": "quiet", "ru": "тихий, спокойный", "ipa": "/ˈkwaɪət/", "exEn": "This place is quieter.", "exRu": "Здесь тише." },
+        { "word": "to meet up", "ru": "встретиться", "ipa": "/miːt ʌp/", "exEn": "Let's meet up on Saturday.", "exRu": "Давай встретимся в субботу." },
+        { "word": "It depends", "ru": "смотря по обстоятельствам", "ipa": "/ɪt dɪˈpendz/", "exEn": "It depends on the weather.", "exRu": "Зависит от погоды." },
+        { "word": "Let's", "ru": "давай(те)", "ipa": "/lets/", "exEn": "Let's go to the park.", "exRu": "Давай пойдём в парк." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Сравнительная и превосходная степень",
+          "summaryRu": "Короткие слова берут -er/-est, длинные — more/the most.",
+          "explanationRu": "Односложные: warm → warmer → the warmest. Двусложные на -y: easy → easier → the easiest. Длинные: expensive → more expensive → the most expensive. Исключения: good → better → the best, bad → worse → the worst. При сравнении используется than, при превосходной — the.",
+          "pitfallRu": "«more warmer» — двойное сравнение, грубая ошибка. И сравнение идёт через than, а не that: «warmer that yesterday» — неверно.",
+          "examples": [
+            { "en": "It is warmer than yesterday.", "ru": "Теплее, чем вчера.", "wrong": "It is more warmer that yesterday." },
+            { "en": "This is the most expensive hotel.", "ru": "Это самый дорогой отель.", "wrong": "This is the expensivest hotel." },
+            { "en": "Your idea is better.", "ru": "Твоя идея лучше.", "wrong": "Your idea is gooder." }
+          ]
+        },
+        {
+          "titleRu": "Безличное it о погоде и времени",
+          "summaryRu": "«Холодно», «идёт дождь», «семь часов» — всё начинается с it.",
+          "explanationRu": "В английском у предложения обязательно должно быть подлежащее, поэтому появляется формальное it: It is cold. It is raining. It is seven o'clock. It takes an hour.",
+          "pitfallRu": "«Is cold today» или «Today cold» — прямая калька с русского, где подлежащее не нужно.",
+          "examples": [
+            { "en": "It is cold today.", "ru": "Сегодня холодно.", "wrong": "Today cold." },
+            { "en": "It takes an hour.", "ru": "Это занимает час.", "wrong": "Takes an hour." }
+          ]
+        }
+      ]
+    }
+  ]
+}

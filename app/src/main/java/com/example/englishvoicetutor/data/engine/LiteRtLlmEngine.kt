@@ -106,6 +106,8 @@ class LiteRtLlmEngine @Inject constructor(
     override suspend fun feedback(text: String, level: CefrLevel): String =
         oneShot(com.example.englishvoicetutor.domain.TutorPrompt.feedback(text, level)).trim()
 
+    override suspend fun ask(prompt: String): String = oneShot(prompt).trim()
+
     /**
      * Разовый запрос к модели без истории диалога — для перевода, разбора ошибок
      * и суммаризации. Собирает потоковый ответ в одну строку.
