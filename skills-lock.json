@@ -7,6 +7,12 @@
       "skillPath": "skills/android-clean-architecture/SKILL.md",
       "computedHash": "8f7efca3efcc228560c39c366e846d4bf22e585f9847610634f53b7622f7795c"
     },
+    "design-mobile-apps": {
+      "source": "designed-by-ai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-mobile-apps/SKILL.md",
+      "computedHash": "f4cc1e18b4ebb78a5b0a841dabf9d7de517e21446a25e14284a0295c6027274b"
+    },
     "mobile-android-design": {
       "source": "wshobson/agents",
       "sourceType": "github",

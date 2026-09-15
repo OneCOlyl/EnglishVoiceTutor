@@ -67,7 +67,9 @@ import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Message
 import com.example.englishvoicetutor.domain.model.MessageInsight
 import com.example.englishvoicetutor.domain.model.MessageRole
+import com.example.englishvoicetutor.data.engine.TtsStatus
 import com.example.englishvoicetutor.domain.model.ModelDownloadState
+import com.example.englishvoicetutor.presentation.components.TtsStatusBanner
 import com.example.englishvoicetutor.domain.model.VoiceUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,6 +86,7 @@ fun ConversationScreen(
     val messages by viewModel.messages.collectAsState()
     val modelState by viewModel.modelDownloadState.collectAsState()
     val insights by viewModel.insights.collectAsState()
+    val ttsStatus by viewModel.ttsStatus.collectAsState()
 
     Scaffold(
         topBar = {
@@ -128,7 +131,8 @@ fun ConversationScreen(
                 onTextSubmit = viewModel::onSpeechResult,
                 onTranslate = viewModel::translateMessage,
                 onReview = viewModel::reviewMessage,
-                modelState = modelState
+                modelState = modelState,
+                ttsStatus = ttsStatus
             )
         }
     }
@@ -207,6 +211,7 @@ private fun ActiveConversation(
     onTranslate: (Message) -> Unit,
     onReview: (Message, Message) -> Unit,
     modelState: ModelDownloadState,
+    ttsStatus: TtsStatus,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         // Отступы Scaffold уже применены на внешнем Box; внутренний Column должен
@@ -233,6 +238,10 @@ private fun ActiveConversation(
                     )
                 }
             }
+            TtsStatusBanner(
+                ttsStatus,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+            )
             StatusLine(voiceState)
             InputBar(
                 voiceState = voiceState,

@@ -9,36 +9,44 @@ import android.media.audiofx.AcousticEchoCanceler
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.util.Log
+import com.example.englishvoicetutor.data.model.ArchiveModelDownloader
 import com.example.englishvoicetutor.domain.model.ModelDownloadState
 import com.k2fsa.sherpa.onnx.OfflineModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
-import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
+import com.k2fsa.sherpa.onnx.OfflineTransducerModelConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import java.io.File
-import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// Whisper small.en (int8) — английская офлайн-модель. Заметно устойчивее Moonshine base
-// на коротких фразах, акценте и названиях; non-streaming — идеально ложится на push-to-talk.
+// Parakeet unified-en 0.6B (int8, non-streaming) — NeMo-трансдьюсер от NVIDIA под английский.
+// В разы быстрее Whisper small.en на CPU (важно для слабых устройств), сам расставляет
+// пунктуацию и регистр и не склонен «выдумывать» текст на тишине, чем грешит Whisper.
 private const val MODEL_URL =
     "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/" +
-        "sherpa-onnx-whisper-small.en.tar.bz2"
-private const val MODEL_DIR_NAME = "sherpa-onnx-whisper-small.en"
+        "sherpa-onnx-nemo-parakeet-unified-en-0.6b-int8-non-streaming.tar.bz2"
+private const val MODEL_DIR_NAME = "sherpa-onnx-nemo-parakeet-unified-en-0.6b-int8-non-streaming"
+
+// По этим префиксам узнаём каталоги STT-моделей в filesDir. Всё, что подходит под префикс,
+// но не равно MODEL_DIR_NAME, — модель прошлой версии приложения: она больше не нужна и
+// занимает сотни мегабайт. Список префиксов, а не конкретных имён, чтобы следующая смена
+// модели чистилась сама, без правок кода.
+private val MODEL_DIR_PREFIXES = listOf("sherpa-onnx-", "vosk-model-")
+
+private const val TMP_ARCHIVE_NAME = "model_tmp.tar.bz2"
 private const val SAMPLE_RATE = 16_000
 private const val TAG = "SherpaOnnxSttEngine"
 
 @Singleton
 class SherpaOnnxSttEngine @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val downloader: ArchiveModelDownloader,
 ) : SttEngine {
 
     @Volatile
@@ -47,7 +55,7 @@ class SherpaOnnxSttEngine @Inject constructor(
     @Volatile private var audioRecord: AudioRecord? = null
     @Volatile private var recordingThread: Thread? = null
 
-    // Аккумулятор аудио за одно нажатие: Moonshine распознаёт всю фразу разом на stopRecording.
+    // Аккумулятор аудио за одно нажатие: модель распознаёт всю фразу разом на stopRecording.
     private val recordedChunks = mutableListOf<ShortArray>()
     @Volatile private var recordedSamples = 0
 
@@ -60,14 +68,24 @@ class SherpaOnnxSttEngine @Inject constructor(
     private suspend fun ensureRecognizer(): OfflineRecognizer = withContext(Dispatchers.IO) {
         recognizer?.let { return@withContext it }
 
+        deleteOutdatedModels()
+
         val modelDir = File(context.filesDir, MODEL_DIR_NAME)
-        val modelReady = File(modelDir, "small.en-tokens.txt").exists() &&
-            File(modelDir, "small.en-encoder.int8.onnx").exists()
+        val modelReady = File(modelDir, "tokens.txt").exists() &&
+            File(modelDir, "encoder.int8.onnx").exists()
 
         if (!modelReady) {
             modelDir.deleteRecursively()
             try {
-                downloadAndUnpack(MODEL_URL, context.filesDir)
+                downloader.downloadAndUnpack(
+                    url = MODEL_URL,
+                    destDir = context.filesDir,
+                    tmpArchiveName = TMP_ARCHIVE_NAME,
+                    // В архиве кроме весов лежат тестовые wav-ы и карточки модели —
+                    // на устройстве они не нужны.
+                    skipEntry = { it.contains("/test_wavs/") || it.endsWith(".md") },
+                    onState = { _downloadState.value = it },
+                )
             } catch (e: Exception) {
                 _downloadState.value = ModelDownloadState.Error(e.message ?: "Ошибка загрузки")
                 throw e
@@ -77,14 +95,16 @@ class SherpaOnnxSttEngine @Inject constructor(
         _downloadState.value = ModelDownloadState.Downloading(99, listOf("Загружаем модель в память…"))
         val config = OfflineRecognizerConfig(
             modelConfig = OfflineModelConfig(
-                whisper = OfflineWhisperModelConfig(
-                    encoder = File(modelDir, "small.en-encoder.int8.onnx").absolutePath,
-                    decoder = File(modelDir, "small.en-decoder.int8.onnx").absolutePath,
-                    language = "en",
-                    task = "transcribe",
+                transducer = OfflineTransducerModelConfig(
+                    encoder = File(modelDir, "encoder.int8.onnx").absolutePath,
+                    decoder = File(modelDir, "decoder.int8.onnx").absolutePath,
+                    joiner = File(modelDir, "joiner.int8.onnx").absolutePath,
                 ),
-                tokens = File(modelDir, "small.en-tokens.txt").absolutePath,
-                numThreads = 2,
+                tokens = File(modelDir, "tokens.txt").absolutePath,
+                // Трансдьюсеры NeMo не распознаются по структуре графа — тип задаём явно.
+                modelType = "nemo_transducer",
+                // Энкодер 0.6B считается на CPU: берём до 4 потоков, но не больше, чем ядер.
+                numThreads = Runtime.getRuntime().availableProcessors().coerceIn(2, 4),
                 debug = false,
                 provider = "cpu",
             ),
@@ -93,6 +113,31 @@ class SherpaOnnxSttEngine @Inject constructor(
         val r = OfflineRecognizer(config = config)
         _downloadState.value = ModelDownloadState.Ready
         r.also { recognizer = it }
+    }
+
+    /**
+     * Удаляет каталоги STT-моделей, оставшиеся от прошлых версий приложения, и недокачанные
+     * временные архивы. Вызывается перед проверкой актуальной модели, так что смена модели
+     * освобождает место сама — пользователю не нужно чистить данные приложения руками.
+     */
+    private fun deleteOutdatedModels() {
+        val files = context.filesDir.listFiles() ?: return
+        for (file in files) {
+            val isOutdatedModel = file.isDirectory &&
+                file.name != MODEL_DIR_NAME &&
+                MODEL_DIR_PREFIXES.any { file.name.startsWith(it) }
+            // Архив остаётся, если распаковку прервали (закрыли приложение, кончилось место).
+            val isLeftoverArchive = file.isFile && file.name == TMP_ARCHIVE_NAME
+
+            if (isOutdatedModel || isLeftoverArchive) {
+                val freedMb = file.walkBottomUp().filter { it.isFile }.sumOf { it.length() } / 1024 / 1024
+                if (file.deleteRecursively()) {
+                    Log.d(TAG, "Удалено ${file.name} — освобождено $freedMb МБ")
+                } else {
+                    Log.w(TAG, "Не удалось удалить ${file.name}")
+                }
+            }
+        }
     }
 
     override suspend fun startRecording() {
@@ -163,14 +208,14 @@ class SherpaOnnxSttEngine @Inject constructor(
         val r = recognizer
         if (r == null || samples.isEmpty()) return ""
 
-        // Whisper — офлайн-модель: скармливаем всю фразу разом одним стримом.
+        // Модель офлайновая (non-streaming): скармливаем всю фразу разом одним стримом.
         val stream = r.createStream()
         stream.acceptWaveform(samples, SAMPLE_RATE)
         r.decode(stream)
         val text = r.getResult(stream).text
         stream.release()
 
-        Log.d(TAG, "Whisper result: '$text'")
+        Log.d(TAG, "ASR result: '$text'")
         return text.trim()
     }
 
@@ -208,79 +253,5 @@ class SherpaOnnxSttEngine @Inject constructor(
                 AcousticEchoCanceler.create(sessionId)?.enabled = false
             }
         }.onFailure { Log.w(TAG, "AEC off failed", it) }
-    }
-
-    private fun downloadAndUnpack(url: String, destDir: File) {
-        val logs = mutableListOf<String>()
-
-        fun log(msg: String) {
-            logs.add(msg)
-            _downloadState.value = ModelDownloadState.Downloading(0, logs.toList())
-        }
-
-        log("Подключаемся к серверу…")
-
-        var currentUrl = url
-        lateinit var stream: java.io.InputStream
-        var totalBytes = -1L
-
-        repeat(5) {
-            val conn = java.net.URL(currentUrl).openConnection() as java.net.HttpURLConnection
-            conn.instanceFollowRedirects = false
-            conn.connect()
-            val code = conn.responseCode
-            if (code in 300..399) {
-                currentUrl = conn.getHeaderField("Location")
-                conn.disconnect()
-            } else {
-                totalBytes = conn.contentLengthLong
-                stream = conn.inputStream.buffered()
-                return@repeat
-            }
-        }
-
-        log("Скачиваем модель…")
-
-        // Сохраняем архив во временный файл, считая прогресс.
-        val tmpArchive = File(destDir, "model_tmp.tar.bz2")
-        var downloaded = 0L
-        stream.use { input ->
-            FileOutputStream(tmpArchive).use { output ->
-                val buf = ByteArray(8192)
-                var n: Int
-                while (input.read(buf).also { n = it } != -1) {
-                    output.write(buf, 0, n)
-                    downloaded += n
-                    if (totalBytes > 0) {
-                        val pct = (downloaded * 100 / totalBytes).toInt()
-                        val mb = downloaded / 1024 / 1024
-                        _downloadState.value = ModelDownloadState.Downloading(
-                            pct,
-                            logs + "Загружено: $mb МБ ($pct%)"
-                        )
-                    }
-                }
-            }
-        }
-
-        log("Распаковываем архив…")
-        // Архив: bzip2 → tar. Внутри всё лежит под каталогом MODEL_DIR_NAME/.
-        TarArchiveInputStream(
-            BZip2CompressorInputStream(tmpArchive.inputStream().buffered())
-        ).use { tar ->
-            var entry = tar.nextEntry
-            while (entry != null) {
-                val outFile = File(destDir, entry.name)
-                if (entry.isDirectory) {
-                    outFile.mkdirs()
-                } else {
-                    outFile.parentFile?.mkdirs()
-                    FileOutputStream(outFile).use { tar.copyTo(it) }
-                }
-                entry = tar.nextEntry
-            }
-        }
-        tmpArchive.delete()
-        log("Готово!")
     }
 }

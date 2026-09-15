@@ -71,7 +71,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    implementation("com.google.ai.edge.litertlm:litertlm-android:0.13.1")
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.17.0")
 
     // --- WorkManager (скачивание моделей) ---
     implementation(libs.androidx.work.runtime.ktx)
@@ -82,10 +82,14 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     implementation(libs.vosk.android)
 
-    // --- sherpa-onnx (офлайн STT, движок для Moonshine) ---
+    // --- sherpa-onnx (офлайн STT, движок для Parakeet) ---
     // AAR с нативными библиотеками (arm64-v8a и др.) публикуется через JitPack.
     // Версию при необходимости поднять до последнего тега k2-fsa/sherpa-onnx.
-    implementation("com.github.k2-fsa:sherpa-onnx:v1.12.40")
-    // Распаковка .tar.bz2 архива модели Moonshine (bzip2 нет в стандартной библиотеке).
+    // С v1.13 AAR тянет ещё и десктопный sherpa-onnx-jvm с теми же классами — на Android
+    // это ломает сборку дубликатами, поэтому исключаем его.
+    implementation("com.github.k2-fsa:sherpa-onnx:v1.13.8") {
+        exclude(group = "com.github.k2-fsa.sherpa-onnx", module = "sherpa-onnx-jvm")
+    }
+    // Распаковка .tar.bz2 архива модели (bzip2 нет в стандартной библиотеке).
     implementation("org.apache.commons:commons-compress:1.27.1")
 }

@@ -1,0 +1,205 @@
+{
+  "level": "B2",
+  "topics": [
+    {
+      "id": "b2-hypothetical",
+      "order": 1,
+      "titleRu": "Гипотезы и сожаления",
+      "titleEn": "Hypothetical situations and regrets",
+      "goalRu": "Рассуждать о нереальном: что было бы, если бы; о чём вы жалеете.",
+      "scenario": "Talking about what you would do if you could start your career again",
+      "vocabulary": [
+        { "word": "to regret", "ru": "сожалеть", "ipa": "/rɪˈɡret/", "exEn": "I regret not taking that job.", "exRu": "Я жалею, что не взял ту работу." },
+        { "word": "otherwise", "ru": "иначе, в противном случае", "ipa": "/ˈʌðərwaɪz/", "exEn": "Leave now, otherwise you will be late.", "exRu": "Уходи сейчас, иначе опоздаешь." },
+        { "word": "to turn down", "ru": "отклонить, отказаться от", "ipa": "/tɜːrn daʊn/", "exEn": "She turned down the offer.", "exRu": "Она отклонила предложение." },
+        { "word": "in hindsight", "ru": "оглядываясь назад", "ipa": "/ɪn ˈhaɪndsaɪt/", "exEn": "In hindsight, it was a mistake.", "exRu": "Оглядываясь назад, это была ошибка." },
+        { "word": "to take a risk", "ru": "рискнуть", "ipa": "/teɪk ə rɪsk/", "exEn": "I should have taken that risk.", "exRu": "Мне стоило тогда рискнуть." },
+        { "word": "to settle for", "ru": "довольствоваться", "ipa": "/ˈsetəl fɔːr/", "exEn": "Don't settle for less.", "exRu": "Не довольствуйся меньшим." },
+        { "word": "worthwhile", "ru": "стоящий, оправданный", "ipa": "/ˌwɜːrθˈwaɪl/", "exEn": "It was a worthwhile investment.", "exRu": "Это было оправданное вложение." },
+        { "word": "to second-guess", "ru": "сомневаться задним числом", "ipa": "/ˈsekənd ɡes/", "exEn": "Stop second-guessing yourself.", "exRu": "Хватит себя перепроверять задним числом." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Второй тип условия: нереальное настоящее",
+          "summaryRu": "If + Past Simple, would + начальная форма.",
+          "explanationRu": "If I had more time, I would learn Spanish — времени нет, это фантазия. В устойчивом обороте с глаголом to be для всех лиц используется were: If I were you, I would accept. Это самый частый способ дать совет на уровне B2.",
+          "pitfallRu": "«If I would have more time» — would в обеих частях. В английском would живёт только в главной части, в условной идёт прошедшее время.",
+          "examples": [
+            { "en": "If I had more time, I would travel more.", "ru": "Если бы у меня было больше времени, я бы больше путешествовал.", "wrong": "If I would have more time, I would travel more." },
+            { "en": "If I were you, I would accept.", "ru": "На твоём месте я бы согласился.", "wrong": "If I was you, I will accept." }
+          ]
+        },
+        {
+          "titleRu": "Третий тип условия и should have",
+          "summaryRu": "Сожаление о прошлом: would have done, should have done.",
+          "explanationRu": "If I had known, I would have helped — прошлое изменить нельзя. Формула: if + had + третья форма, would have + третья форма. Сожаление без условия выражается через should have + третья форма: I should have called her (надо было позвонить, но не позвонил).",
+          "pitfallRu": "«I should call her yesterday» вместо «I should have called» полностью теряет оттенок сожаления. На слух should have часто звучит как «should've» — этим и объясняется ошибочное написание «should of».",
+          "examples": [
+            { "en": "If I had known, I would have helped.", "ru": "Если бы я знал, я бы помог.", "wrong": "If I would know, I would help you then." },
+            { "en": "I should have called her.", "ru": "Мне следовало ей позвонить.", "wrong": "I should call her yesterday." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b2-negotiation",
+      "order": 2,
+      "titleRu": "Переговоры и договорённости",
+      "titleEn": "Negotiating and reaching agreement",
+      "goalRu": "Отстаивать свою позицию, предлагать компромисс, фиксировать договорённости.",
+      "scenario": "Negotiating a project deadline and budget with a client who wants everything faster",
+      "vocabulary": [
+        { "word": "to negotiate", "ru": "вести переговоры", "ipa": "/nɪˈɡoʊʃieɪt/", "exEn": "We need to negotiate the terms.", "exRu": "Нам нужно обсудить условия." },
+        { "word": "compromise", "ru": "компромисс", "ipa": "/ˈkɒmprəmaɪz/", "exEn": "Let's find a compromise.", "exRu": "Давайте найдём компромисс." },
+        { "word": "terms", "ru": "условия (договора)", "ipa": "/tɜːrmz/", "exEn": "The terms are acceptable.", "exRu": "Условия приемлемы." },
+        { "word": "to meet halfway", "ru": "пойти навстречу", "ipa": "/miːt ˌhæfˈweɪ/", "exEn": "We are ready to meet you halfway.", "exRu": "Мы готовы пойти вам навстречу." },
+        { "word": "flexible", "ru": "гибкий", "ipa": "/ˈfleksəbəl/", "exEn": "We can be flexible on the date.", "exRu": "По срокам мы можем быть гибкими." },
+        { "word": "to push back", "ru": "возразить, отодвинуть срок", "ipa": "/pʊʃ bæk/", "exEn": "I had to push back on that request.", "exRu": "Мне пришлось возразить на эту просьбу." },
+        { "word": "bottom line", "ru": "суть; минимально приемлемое", "ipa": "/ˈbɒtəm laɪn/", "exEn": "The bottom line is we need more time.", "exRu": "Суть в том, что нам нужно больше времени." },
+        { "word": "to follow up", "ru": "напомнить, продолжить работу по вопросу", "ipa": "/ˈfɒloʊ ʌp/", "exEn": "I will follow up by email.", "exRu": "Я напишу по итогам на почту." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Модальные глаголы предположения: must / can't / might",
+          "summaryRu": "Так выражают уверенность в выводе, а не обязанность.",
+          "explanationRu": "He must be busy — наверняка занят (уверенный вывод). He can't be serious — не может быть, чтобы он говорил серьёзно. He might be at the office — возможно. О прошлом: must have been, can't have known, might have forgotten.",
+          "pitfallRu": "Для отрицательного вывода русскоязычные берут mustn't («He mustn't know» — «он не должен знать»), но нужен can't: He can't know about it.",
+          "examples": [
+            { "en": "He must be stuck in traffic.", "ru": "Он наверняка застрял в пробке.", "wrong": "He must to be stuck in traffic." },
+            { "en": "She can't have forgotten the meeting.", "ru": "Не может быть, чтобы она забыла про встречу.", "wrong": "She mustn't have forgotten the meeting." }
+          ]
+        },
+        {
+          "titleRu": "Смягчение позиции в переговорах",
+          "summaryRu": "Условные и продолженные формы делают требование мягче.",
+          "explanationRu": "Сравните: I want a discount → I was hoping we could discuss the price. Инструменты смягчения: was/were + -ing (I was wondering), would (that would be difficult), слегка отстранённые формулировки (There might be an issue with...). Носители воспринимают прямое требование как ультиматум.",
+          "pitfallRu": "Прямолинейность, нормальная для русских деловых переговоров, по-английски читается как давление и часто портит сделку.",
+          "examples": [
+            { "en": "I was wondering if we could extend the deadline.", "ru": "Я хотел бы узнать, можем ли мы сдвинуть срок.", "wrong": "Extend the deadline." },
+            { "en": "That would be difficult for us.", "ru": "Для нас это было бы затруднительно.", "wrong": "That is impossible for us." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b2-media-news",
+      "order": 3,
+      "titleRu": "Новости и пересказ",
+      "titleEn": "News and reporting what others said",
+      "goalRu": "Пересказывать чужие слова и обсуждать новости.",
+      "scenario": "Telling a colleague what your manager said at the meeting you both missed parts of",
+      "vocabulary": [
+        { "word": "to claim", "ru": "утверждать", "ipa": "/kleɪm/", "exEn": "He claimed he had no idea.", "exRu": "Он утверждал, что понятия не имел." },
+        { "word": "according to", "ru": "согласно, по словам", "ipa": "/əˈkɔːrdɪŋ tuː/", "exEn": "According to the report, sales fell.", "exRu": "Согласно отчёту, продажи упали." },
+        { "word": "to deny", "ru": "отрицать", "ipa": "/dɪˈnaɪ/", "exEn": "She denied saying that.", "exRu": "Она отрицала, что говорила это." },
+        { "word": "source", "ru": "источник", "ipa": "/sɔːrs/", "exEn": "The source is reliable.", "exRu": "Источник надёжный." },
+        { "word": "biased", "ru": "предвзятый", "ipa": "/ˈbaɪəst/", "exEn": "That article is clearly biased.", "exRu": "Эта статья явно предвзятая." },
+        { "word": "to be aware of", "ru": "быть в курсе", "ipa": "/əˈwer ɒv/", "exEn": "I wasn't aware of the change.", "exRu": "Я не знал об изменении." },
+        { "word": "to turn out", "ru": "оказаться", "ipa": "/tɜːrn aʊt/", "exEn": "The rumour turned out to be false.", "exRu": "Слух оказался ложным." },
+        { "word": "coverage", "ru": "освещение (в СМИ)", "ipa": "/ˈkʌvərɪdʒ/", "exEn": "The story got a lot of coverage.", "exRu": "История получила широкое освещение." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Косвенная речь и сдвиг времён",
+          "summaryRu": "Когда вводный глагол в прошедшем, время внутри сдвигается на шаг назад.",
+          "explanationRu": "\"I am tired\" → He said he was tired. Present Simple → Past Simple, Present Perfect и Past Simple → Past Perfect, will → would, can → could. Местоимения и обстоятельства времени тоже меняются: today → that day, tomorrow → the next day.",
+          "pitfallRu": "«He said he is tired» — сдвига нет. Формально это допустимо, если факт верен и сейчас, но на экзамене и в деловом письме ждут согласования времён.",
+          "examples": [
+            { "en": "He said he was tired.", "ru": "Он сказал, что устал.", "wrong": "He said he is tired." },
+            { "en": "She told me she had already sent it.", "ru": "Она сказала, что уже отправила это.", "wrong": "She told me she already sent it." }
+          ]
+        },
+        {
+          "titleRu": "say и tell",
+          "summaryRu": "tell требует адресата, say — нет.",
+          "explanationRu": "He told me the news (кому — обязательно). He said that the news was bad (без адресата). Если адресат нужен при say, добавляется to: He said to me. Устойчивые сочетания: tell a story, tell the truth, tell a lie, say sorry.",
+          "pitfallRu": "«He said me» — очень частая ошибка, потому что в русском «сказал мне» устроено иначе.",
+          "examples": [
+            { "en": "He told me about the meeting.", "ru": "Он рассказал мне о встрече.", "wrong": "He said me about the meeting." },
+            { "en": "She said she was busy.", "ru": "Она сказала, что занята.", "wrong": "She told she was busy." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b2-phrasal-emotions",
+      "order": 4,
+      "titleRu": "Эмоции и фразовые глаголы",
+      "titleEn": "Emotions and phrasal verbs",
+      "goalRu": "Говорить о чувствах естественно, как носитель, а не книжно.",
+      "scenario": "Telling a close friend how you have been feeling about a difficult period at work",
+      "vocabulary": [
+        { "word": "to be fed up with", "ru": "быть сытым по горло", "ipa": "/fed ʌp wɪð/", "exEn": "I am fed up with the noise.", "exRu": "Я сыт по горло этим шумом." },
+        { "word": "to cheer up", "ru": "приободрить(ся)", "ipa": "/tʃɪr ʌp/", "exEn": "Cheer up, it will be fine.", "exRu": "Не унывай, всё будет хорошо." },
+        { "word": "to calm down", "ru": "успокоиться", "ipa": "/kɑːm daʊn/", "exEn": "Calm down and tell me everything.", "exRu": "Успокойся и расскажи всё." },
+        { "word": "overwhelmed", "ru": "подавленный объёмом, зашивающийся", "ipa": "/ˌoʊvərˈwelmd/", "exEn": "I feel overwhelmed at work.", "exRu": "На работе я не справляюсь с объёмом." },
+        { "word": "to put up with", "ru": "мириться с", "ipa": "/pʊt ʌp wɪð/", "exEn": "I can't put up with this anymore.", "exRu": "Я больше не могу с этим мириться." },
+        { "word": "to look up to", "ru": "восхищаться, брать пример", "ipa": "/lʊk ʌp tuː/", "exEn": "I look up to my mentor.", "exRu": "Я беру пример со своего наставника." },
+        { "word": "to get over", "ru": "пережить, оправиться от", "ipa": "/ɡet ˈoʊvər/", "exEn": "It took me a month to get over it.", "exRu": "Мне понадобился месяц, чтобы это пережить." },
+        { "word": "relieved", "ru": "испытывающий облегчение", "ipa": "/rɪˈliːvd/", "exEn": "I was relieved to hear that.", "exRu": "Я с облегчением это услышал." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Фразовые глаголы: разделяемые и неразделяемые",
+          "summaryRu": "Местоимение иногда обязано стоять в середине: turn it off, а не turn off it.",
+          "explanationRu": "Разделяемые фразовые глаголы (turn off, pick up, throw away) допускают оба порядка с существительным: turn off the light / turn the light off. Но с местоимением — только середина: turn it off. Неразделяемые (look after, put up with, get over) никогда не разрываются: look after him.",
+          "pitfallRu": "«Turn off it» и «look after him» наоборот — две зеркальные ошибки. Проверяйте: если объект — местоимение и глагол разделяемый, местоимение идёт внутрь.",
+          "examples": [
+            { "en": "Can you turn it off?", "ru": "Можешь это выключить?", "wrong": "Can you turn off it?" },
+            { "en": "She looks after her parents.", "ru": "Она заботится о родителях.", "wrong": "She looks her parents after." }
+          ]
+        },
+        {
+          "titleRu": "-ed и -ing у прилагательных чувств",
+          "summaryRu": "-ed — что чувствую я, -ing — какой предмет.",
+          "explanationRu": "I am bored — мне скучно. The film is boring — фильм скучный. Так же: interested / interesting, tired / tiring, confused / confusing, excited / exciting.",
+          "pitfallRu": "«I am boring» означает «я скучный человек» — заметная и слегка комичная ошибка.",
+          "examples": [
+            { "en": "I am confused.", "ru": "Я запутался.", "wrong": "I am confusing." },
+            { "en": "The lecture was interesting.", "ru": "Лекция была интересной.", "wrong": "The lecture was interested." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b2-presentation",
+      "order": 5,
+      "titleRu": "Презентация и убеждение",
+      "titleEn": "Presenting and persuading",
+      "goalRu": "Структурировать выступление, расставлять акценты, отвечать на вопросы.",
+      "scenario": "Presenting a proposal to a sceptical audience and handling their questions",
+      "vocabulary": [
+        { "word": "to outline", "ru": "изложить в общих чертах", "ipa": "/ˈaʊtlaɪn/", "exEn": "Let me outline the main idea.", "exRu": "Позвольте изложить основную мысль." },
+        { "word": "key point", "ru": "ключевой тезис", "ipa": "/kiː pɔɪnt/", "exEn": "My key point is simple.", "exRu": "Мой ключевой тезис прост." },
+        { "word": "to emphasise", "ru": "подчеркнуть", "ipa": "/ˈemfəsaɪz/", "exEn": "I want to emphasise one thing.", "exRu": "Я хочу подчеркнуть одну вещь." },
+        { "word": "evidence", "ru": "доказательства, данные", "ipa": "/ˈevɪdəns/", "exEn": "There is strong evidence for this.", "exRu": "Этому есть веские доказательства." },
+        { "word": "to address a concern", "ru": "снять возражение", "ipa": "/əˈdres ə kənˈsɜːrn/", "exEn": "Let me address that concern.", "exRu": "Позвольте ответить на это возражение." },
+        { "word": "to sum up", "ru": "подводить итог", "ipa": "/sʌm ʌp/", "exEn": "To sum up, we need two things.", "exRu": "Подводя итог, нам нужны две вещи." },
+        { "word": "compelling", "ru": "убедительный", "ipa": "/kəmˈpelɪŋ/", "exEn": "That is a compelling argument.", "exRu": "Это убедительный аргумент." },
+        { "word": "takeaway", "ru": "главный вывод", "ipa": "/ˈteɪkəweɪ/", "exEn": "The main takeaway is clear.", "exRu": "Главный вывод очевиден." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Эмфатические конструкции с What и It",
+          "summaryRu": "Так выделяют главное, не повышая голос.",
+          "explanationRu": "Обычное: We need more time. Эмфатическое: What we need is more time. Или: It is time that we need, not money. Ещё один усилитель — вспомогательный do: I do understand your concern. Это письменно и устно звучит весомо и профессионально.",
+          "pitfallRu": "Русскоязычные выделяют главное порядком слов («More time we need»), что по-английски звучит поломанно — там порядок слов жёсткий, и акцент ставится именно конструкцией.",
+          "examples": [
+            { "en": "What we need is more time.", "ru": "Что нам нужно, так это больше времени.", "wrong": "More time we need." },
+            { "en": "I do understand your concern.", "ru": "Я правда понимаю ваше беспокойство.", "wrong": "I understand really your concern." }
+          ]
+        },
+        {
+          "titleRu": "Артикль the с уникальным и уже названным",
+          "summaryRu": "На B2 ошибки в артиклях становятся главным маркером неносителя.",
+          "explanationRu": "the ставится, когда объект известен обоим собеседникам: уже упоминался, единственный в своём роде (the sun, the internet), уточнён определением (the price of the project). Без артикля идут абстрактные и обобщённые понятия во множественном числе: Prices are rising. Meetings are a waste of time.",
+          "pitfallRu": "Две противоположные крайности: полное отсутствие артиклей и the перед каждым существительным. Обобщение — без артикля, конкретика — с the.",
+          "examples": [
+            { "en": "The price of the project is too high.", "ru": "Цена проекта слишком высока.", "wrong": "Price of project is too high." },
+            { "en": "Prices are rising everywhere.", "ru": "Цены растут повсюду.", "wrong": "The prices are rising everywhere in general." }
+          ]
+        }
+      ]
+    }
+  ]
+}

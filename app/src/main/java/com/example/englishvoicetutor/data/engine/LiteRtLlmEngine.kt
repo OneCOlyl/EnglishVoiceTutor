@@ -26,18 +26,42 @@ class LiteRtLlmEngine @Inject constructor(
 
     @Volatile private var engine: Engine? = null
 
-    /** Вызвать один раз после того как пользователь выбрал файл модели. */
+    /**
+     * Вызвать один раз после того как пользователь выбрал файл модели.
+     *
+     * Сначала пробуем GPU: на телефоне он даёт заметно больше токенов в секунду и не
+     * занимает CPU, который в это время пишет звук и рисует UI. Но OpenCL есть не на
+     * каждом устройстве, и там `initialize()` падает — тогда откатываемся на CPU,
+     * иначе приложение становится нерабочим уже после скачивания модели.
+     */
     suspend fun initialize(modelPath: String) = withContext(Dispatchers.IO) {
         engine?.close()
+        engine = null
         Log.d("LiteRtLlm", "Initializing engine with model: $modelPath")
+        _usingCpuFallback = false
+        engine = try {
+            createEngine(modelPath, Backend.GPU())
+        } catch (e: Exception) {
+            Log.w("LiteRtLlm", "GPU backend unavailable, falling back to CPU", e)
+            _usingCpuFallback = true
+            createEngine(modelPath, Backend.CPU())
+        }
+        Log.d("LiteRtLlm", "Engine ready (backend=${if (_usingCpuFallback) "CPU" else "GPU"})")
+    }
+
+    private fun createEngine(modelPath: String, backend: Backend): Engine {
         val config = EngineConfig(
             modelPath = modelPath,
-            backend = Backend.GPU(),
+            backend = backend,
             cacheDir = context.cacheDir.path
         )
-        engine = Engine(config).also { it.initialize() }
-        Log.d("LiteRtLlm", "Engine ready")
+        return Engine(config).also { it.initialize() }
     }
+
+    @Volatile private var _usingCpuFallback = false
+
+    /** true, если GPU не завёлся и модель считается на CPU — ответы будут заметно медленнее. */
+    val usingCpuFallback: Boolean get() = _usingCpuFallback
 
     val isReady: Boolean get() = engine != null
 
@@ -81,6 +105,8 @@ class LiteRtLlmEngine @Inject constructor(
 
     override suspend fun feedback(text: String, level: CefrLevel): String =
         oneShot(com.example.englishvoicetutor.domain.TutorPrompt.feedback(text, level)).trim()
+
+    override suspend fun ask(prompt: String): String = oneShot(prompt).trim()
 
     /**
      * Разовый запрос к модели без истории диалога — для перевода, разбора ошибок
