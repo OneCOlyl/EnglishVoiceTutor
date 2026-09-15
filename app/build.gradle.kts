@@ -16,8 +16,8 @@ android {
         // Поднимать перед каждым релизом: versionCode обязан расти, иначе Android
         // не поставит новый APK поверх установленного. versionName должен совпадать
         // с тегом без префикса `v` (см. RELEASE.md).
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
     }
 
     buildTypes {
