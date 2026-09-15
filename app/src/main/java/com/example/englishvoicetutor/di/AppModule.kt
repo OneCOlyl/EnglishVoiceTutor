@@ -12,6 +12,7 @@ import com.example.englishvoicetutor.data.engine.StubTutorLlmEngine
 import com.example.englishvoicetutor.data.engine.TtsEngine
 import com.example.englishvoicetutor.data.local.AppDatabase
 import com.example.englishvoicetutor.data.local.MIGRATION_1_2
+import com.example.englishvoicetutor.data.local.MIGRATION_2_3
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -49,7 +50,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, "english_voice_tutor.db")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
 
     @Provides

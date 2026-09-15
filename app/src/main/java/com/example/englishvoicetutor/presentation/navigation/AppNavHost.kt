@@ -26,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.englishvoicetutor.domain.model.NEW_CONVERSATION_ID
 import com.example.englishvoicetutor.presentation.conversation.ConversationScreen
+import com.example.englishvoicetutor.presentation.conversation.SessionReviewScreen
 import com.example.englishvoicetutor.presentation.history.HistoryScreen
 import com.example.englishvoicetutor.presentation.learning.GrammarScreen
 import com.example.englishvoicetutor.presentation.learning.ReviewScreen
@@ -44,6 +45,7 @@ private const val ROUTE_REVIEW = "review"
 private const val ROUTE_TOPIC = "topic/{topicId}"
 private const val ROUTE_RULE = "rule/{ruleId}"
 private const val ROUTE_CONVERSATION = "conversation/{conversationId}?topicId={topicId}"
+private const val ROUTE_SESSION_REVIEW = "conversation/{conversationId}/report"
 private const val ARG_CONVERSATION_ID = "conversationId"
 private const val ARG_TOPIC_ID = "topicId"
 private const val ARG_RULE_ID = "ruleId"
@@ -174,8 +176,16 @@ fun AppNavHost(
                 ConversationScreen(
                     micPermissionGranted = micPermissionGranted,
                     onRequestMicPermission = onRequestMicPermission,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onOpenReview = { id -> navController.navigate("conversation/$id/report") }
                 )
+            }
+
+            composable(
+                route = ROUTE_SESSION_REVIEW,
+                arguments = listOf(navArgument(ARG_CONVERSATION_ID) { type = NavType.LongType })
+            ) {
+                SessionReviewScreen(onBack = { navController.popBackStack() })
             }
         }
     }
