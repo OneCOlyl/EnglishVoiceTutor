@@ -30,7 +30,12 @@ object TutorPrompt {
      * императивно, с примерами формата, и явно запрещаем то, что ломает
      * голосовой формат (списки, разметку, эмодзи, метакомментарии).
      */
-    fun system(level: CefrLevel, scenario: String, focus: TopicFocus? = null): String = buildString {
+    fun system(
+        level: CefrLevel,
+        scenario: String,
+        focus: TopicFocus? = null,
+        resumed: Boolean = false
+    ): String = buildString {
         appendLine("You are Alex, a warm and encouraging English conversation partner.")
         appendLine("You are having a SPOKEN role-play conversation with a learner.")
         appendLine("Scenario: $scenario.")
@@ -49,6 +54,17 @@ object TutorPrompt {
         appendLine("Never do this:")
         appendLine("- No lists, no markdown, no emoji, no stage directions, no translations.")
         appendLine("- Do not write the learner's lines for them or continue past your own turn.")
+
+        if (resumed) {
+            // В контекст уходят только последние сообщения, поэтому начало разговора
+            // модель не видит и на длинной истории норовит представиться заново.
+            appendLine()
+            appendLine("You are in the MIDDLE of this conversation:")
+            appendLine("- You have already met and introduced yourselves.")
+            appendLine("- Never greet the learner again, never say your name again,")
+            appendLine("  and never ask for their name or where they are from a second time.")
+            appendLine("- Continue from the last thing they said. Ask about something new.")
+        }
 
         if (focus != null) {
             appendLine()
@@ -70,6 +86,27 @@ object TutorPrompt {
             }
         }
     }
+
+    /**
+     * Реплика-«затравка» для первого хода репетитора в уроке.
+     *
+     * Идёт в модель как ход пользователя, но в БД не пишется: это служебная
+     * инструкция, а не слова учащегося. Скобки и слово «instruction» помогают
+     * маленькой модели не принять текст за реплику собеседника и не ответить на него.
+     */
+    fun openingKick(): String =
+        "(Instruction, not a line of dialogue: the learner has just joined and is waiting. " +
+            "Greet them in character, set the scene in one or two sentences, " +
+            "and ask your first simple question.)"
+
+    /**
+     * Затравка для прощания: учащийся сказал «goodbye», разговор пора закрыть.
+     * Отдельный ход нужен, чтобы модель не задавала очередной вопрос
+     * и не тянула диалог дальше.
+     */
+    fun farewellKick(userText: String): String =
+        "The learner said: \"$userText\". They are ending the conversation. " +
+            "Say a short, warm goodbye in character. Do NOT ask any question."
 
     /** Подсказка по сложности языка под уровень — подставляется в системный промпт. */
     private fun levelGuidance(level: CefrLevel): String = when (level) {

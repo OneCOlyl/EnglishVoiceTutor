@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.material.icons.filled.Stop
@@ -78,6 +79,7 @@ fun ConversationScreen(
     micPermissionGranted: Boolean,
     onRequestMicPermission: () -> Unit,
     onBack: () -> Unit,
+    onOpenReview: (Long) -> Unit,
     viewModel: ConversationViewModel = hiltViewModel()
 ) {
     val conversationId by viewModel.conversationId.collectAsState()
@@ -100,6 +102,25 @@ fun ConversationScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                    }
+                },
+                actions = {
+                    // Разбор и ручное завершение доступны только когда диалог уже создан.
+                    conversationId?.let { id ->
+                        if (meta?.isEnded == false) {
+                            IconButton(onClick = viewModel::endConversation) {
+                                Icon(
+                                    Icons.Filled.DoneAll,
+                                    contentDescription = "Завершить диалог"
+                                )
+                            }
+                        }
+                        IconButton(onClick = { onOpenReview(id) }) {
+                            Icon(
+                                Icons.Filled.Spellcheck,
+                                contentDescription = "Разбор диалога"
+                            )
+                        }
                     }
                 },
                 // Компактнее стандартного бара — чтобы шапка не съедала высоту диалога.
@@ -132,7 +153,10 @@ fun ConversationScreen(
                 onTranslate = viewModel::translateMessage,
                 onReview = viewModel::reviewMessage,
                 modelState = modelState,
-                ttsStatus = ttsStatus
+                ttsStatus = ttsStatus,
+                isEnded = meta?.isEnded == true,
+                onContinue = viewModel::continueConversation,
+                onOpenSessionReview = { conversationId?.let(onOpenReview) }
             )
         }
     }
@@ -212,6 +236,9 @@ private fun ActiveConversation(
     onReview: (Message, Message) -> Unit,
     modelState: ModelDownloadState,
     ttsStatus: TtsStatus,
+    isEnded: Boolean,
+    onContinue: () -> Unit,
+    onOpenSessionReview: () -> Unit,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         // Отступы Scaffold уже применены на внешнем Box; внутренний Column должен
@@ -242,14 +269,23 @@ private fun ActiveConversation(
                 ttsStatus,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
             )
-            StatusLine(voiceState)
-            InputBar(
-                voiceState = voiceState,
-                micPermissionGranted = micPermissionGranted,
-                onRequestMicPermission = onRequestMicPermission,
-                onMicTapped = onMicTapped,
-                onTextSubmit = onTextSubmit
-            )
+            // После прощания микрофон убираем: диалог закрыт, и экран предлагает
+            // разбор — или вернуть разговор, если «goodbye» было случайным.
+            if (isEnded) {
+                ConversationEndedPanel(
+                    onContinue = onContinue,
+                    onOpenSessionReview = onOpenSessionReview
+                )
+            } else {
+                StatusLine(voiceState)
+                InputBar(
+                    voiceState = voiceState,
+                    micPermissionGranted = micPermissionGranted,
+                    onRequestMicPermission = onRequestMicPermission,
+                    onMicTapped = onMicTapped,
+                    onTextSubmit = onTextSubmit
+                )
+            }
         }
         if (modelState !is ModelDownloadState.Ready && modelState !is ModelDownloadState.Idle) {
             Surface(
@@ -295,6 +331,47 @@ private fun ActiveConversation(
                         else -> {}
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Панель вместо поля ввода, когда разговор завершён прощанием. */
+@Composable
+private fun ConversationEndedPanel(
+    onContinue: () -> Unit,
+    onOpenSessionReview: () -> Unit,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Разговор завершён", style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Посмотрите разбор своих реплик или продолжите диалог.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(onClick = onOpenSessionReview) {
+                    Icon(
+                        Icons.Filled.Spellcheck,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    Text("Разбор диалога")
+                }
+                TextButton(onClick = onContinue) { Text("Продолжить") }
             }
         }
     }

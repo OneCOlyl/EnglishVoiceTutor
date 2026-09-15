@@ -15,6 +15,15 @@ import javax.inject.Singleton
 /** Сколько последних сообщений отдаём в контекст LLM при продолжении диалога (см. п.4.1 плана). */
 private const val RECENT_MESSAGES_FOR_CONTEXT = 20
 
+/**
+ * Сколько сообщений от начала диалога тянем в контекст всегда.
+ *
+ * Знакомство (имя, откуда, чем занимается) происходит в первых репликах, и когда
+ * окно уезжает вперёд, модель теряет этот факт и здоровается заново. Дешевле
+ * прибить начало к контексту, чем гонять суммаризацию на каждый ход.
+ */
+private const val OPENING_MESSAGES_FOR_CONTEXT = 4
+
 @Singleton
 class ConversationRepository @Inject constructor(
     private val dao: ConversationDao
@@ -59,16 +68,48 @@ class ConversationRepository @Inject constructor(
         }
     }
 
-    /** Контекст для LLM при продолжении старого диалога: последние сообщения + summary остального. */
-    suspend fun getContextForResume(conversationId: Long): List<Message> =
-        dao.getRecentMessages(conversationId, RECENT_MESSAGES_FOR_CONTEXT)
+    /** Все реплики диалога — нужны для разбора ошибок по завершении разговора. */
+    suspend fun getAllMessages(conversationId: Long): List<Message> =
+        dao.getMessages(conversationId).map { it.toDomain() }
+
+    /**
+     * Контекст для LLM: начало диалога + последние сообщения.
+     *
+     * Середина длинного разговора выпадает — это осознанный размен: маленькая модель
+     * всё равно не удержит полную историю, а знакомство и свежие реплики важнее.
+     */
+    suspend fun getContextForResume(conversationId: Long): List<Message> {
+        val recent = dao.getRecentMessages(conversationId, RECENT_MESSAGES_FOR_CONTEXT)
             .reversed()
             .map { it.toDomain() }
+        val total = dao.countMessages(conversationId)
+        if (total <= RECENT_MESSAGES_FOR_CONTEXT) return recent
+
+        val opening = dao.getFirstMessages(conversationId, OPENING_MESSAGES_FOR_CONTEXT)
+            .map { it.toDomain() }
+        // Если окно уже дотянулось до начала, склейка только задвоила бы реплики.
+        val recentIds = recent.map { it.id }.toSet()
+        return opening.filterNot { it.id in recentIds } + recent
+    }
 
     suspend fun saveSummary(conversationId: Long, summary: String) {
         dao.getConversation(conversationId)?.let {
             dao.updateConversation(it.copy(summary = summary))
         }
+    }
+
+    /**
+     * Помечает диалог завершённым (учащийся попрощался) или снова открытым.
+     * Отдельного «архива» нет: продолжение просто снимает отметку, история реплик
+     * при этом сохраняется целиком, и разговор идёт дальше с тем же контекстом.
+     */
+    suspend fun setEnded(conversationId: Long, ended: Boolean): Conversation? {
+        val current = dao.getConversation(conversationId) ?: return null
+        val updated = current.copy(
+            endedAtMillis = if (ended) System.currentTimeMillis() else null
+        )
+        dao.updateConversation(updated)
+        return updated.toDomain()
     }
 
     suspend fun getConversation(conversationId: Long): Conversation? =
@@ -86,7 +127,8 @@ private fun ConversationEntity.toDomain() = Conversation(
     summary = summary,
     topicId = topicId,
     createdAtMillis = createdAtMillis,
-    updatedAtMillis = updatedAtMillis
+    updatedAtMillis = updatedAtMillis,
+    endedAtMillis = endedAtMillis
 )
 
 private fun MessageEntity.toDomain() = Message(

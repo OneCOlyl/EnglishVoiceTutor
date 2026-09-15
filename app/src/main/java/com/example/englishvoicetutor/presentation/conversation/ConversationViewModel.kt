@@ -16,6 +16,8 @@ import com.example.englishvoicetutor.data.model.ModelInstaller
 import com.example.englishvoicetutor.data.repository.ConversationRepository
 import com.example.englishvoicetutor.data.repository.CurriculumRepository
 import com.example.englishvoicetutor.data.repository.VocabularyRepository
+import com.example.englishvoicetutor.domain.ConversationFlow
+import com.example.englishvoicetutor.domain.FeedbackParser
 import com.example.englishvoicetutor.domain.TutorPrompt
 import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Conversation
@@ -131,8 +133,21 @@ class ConversationViewModel @Inject constructor(
             val conversation = repository.createConversation(scenarioInput, levelInput, navArgTopicId)
             _conversationMeta.value = conversation
             _conversationId.value = conversation.id
+            // В уроке курса первым говорит репетитор: учащемуся не нужно
+            // придумывать, с чего начать, — он сразу отвечает на вопрос.
+            if (navArgTopicId != null) speakOpening(conversation)
         }
     }
+
+    /** Первая реплика репетитора в уроке: приветствие и вводный вопрос по сценарию. */
+    private suspend fun speakOpening(meta: Conversation) {
+        if (openingSpoken) return
+        openingSpoken = true
+        runTutorTurn(meta.id, meta, TutorPrompt.openingKick(), history = emptyList())
+    }
+
+    /** Приветствие генерируем один раз за жизнь вьюмодели, даже если экран пересобрался. */
+    private var openingSpoken = false
 
     /** Запускает полный цикл: STT → LLM → TTS. */
     fun onMicTapped() {
@@ -177,35 +192,85 @@ class ConversationViewModel @Inject constructor(
         Log.d("VoiceTutor", "onSpeechResult: text='$userText'")
         if (userText.isBlank()) { _voiceState.value = VoiceUiState.Idle; return }
         viewModelScope.launch {
-            try {
-                Log.d("VoiceTutor", "Saving user message...")
-                repository.appendMessage(convId, MessageRole.USER, userText)
-                _voiceState.value = VoiceUiState.Thinking
-                // На случай если прогрев из init ещё не завершился (или не стартовал) —
-                // гарантируем, что движок подключён, прежде чем звать LLM.
-                modelInstaller.ensureInitialized()
-                Log.d("VoiceTutor", "Calling LLM...")
-                val systemPrompt = TutorPrompt.system(meta.cefrLevel, meta.scenario, buildFocus(meta))
-                val history = repository.getContextForResume(convId)
-
-                val replyBuilder = StringBuilder()
-                llmEngine.generateReply(systemPrompt, history, userText)
-                    .collect { chunk -> replyBuilder.append(chunk) }
-
-                val replyText = replyBuilder.toString().trim().ifBlank {
-                    "Sorry, could you say that again?"
-                }
-
-                repository.appendMessage(convId, MessageRole.TUTOR, replyText)
-                registerTopicPracticeOnce(meta.topicId)
-                _voiceState.value = VoiceUiState.Speaking(replyText)
-                ttsEngine.speak(replyText)
-                _voiceState.value = VoiceUiState.Idle
-            } catch (e: Exception) {
-                // Любая ошибка LLM/TTS не должна ронять процесс — показываем её в UI.
-                Log.e("VoiceTutor", "Voice loop failed", e)
-                _voiceState.value = VoiceUiState.Error(e.message ?: "Ошибка ответа репетитора")
+            // Контекст берём ДО записи новой реплики: иначе она попадёт в модель
+            // дважды — и как последняя строка истории, и как текущий ход,
+            // а на двух одинаковых подряд ходах модель начинает сбиваться.
+            val history = repository.getContextForResume(convId)
+            Log.d("VoiceTutor", "Saving user message...")
+            repository.appendMessage(convId, MessageRole.USER, userText)
+            // «Goodbye» закрывает разговор: репетитор прощается в ответ, после чего
+            // экран предлагает разбор — или продолжить, если прощание было случайным.
+            val farewell = ConversationFlow.isFarewell(userText)
+            val turnPrompt = if (farewell) TutorPrompt.farewellKick(userText) else userText
+            val ok = runTutorTurn(convId, meta, turnPrompt, history = history)
+            if (farewell && ok) {
+                repository.setEnded(convId, ended = true)?.let { _conversationMeta.value = it }
             }
+        }
+    }
+
+    /**
+     * Один ход репетитора: LLM → запись реплики → озвучка.
+     * [history] — контекст без текущей реплики учащегося (для первого хода пустой).
+     * Возвращает true, если ход прошёл без ошибок.
+     */
+    private suspend fun runTutorTurn(
+        convId: Long,
+        meta: Conversation,
+        turnPrompt: String,
+        history: List<Message>
+    ): Boolean = try {
+        _voiceState.value = VoiceUiState.Thinking
+        // На случай если прогрев из init ещё не завершился (или не стартовал) —
+        // гарантируем, что движок подключён, прежде чем звать LLM.
+        modelInstaller.ensureInitialized()
+        Log.d("VoiceTutor", "Calling LLM...")
+        val systemPrompt = TutorPrompt.system(
+            level = meta.cefrLevel,
+            scenario = meta.scenario,
+            focus = buildFocus(meta),
+            // Разговор уже идёт — напоминаем модели, что знакомство позади.
+            // Без этого она на длинной истории заново представляется и спрашивает имя.
+            resumed = history.isNotEmpty()
+        )
+
+        val replyBuilder = StringBuilder()
+        llmEngine.generateReply(systemPrompt, history, turnPrompt)
+            .collect { chunk -> replyBuilder.append(chunk) }
+
+        val replyText = replyBuilder.toString().trim().ifBlank {
+            "Sorry, could you say that again?"
+        }
+
+        repository.appendMessage(convId, MessageRole.TUTOR, replyText)
+        registerTopicPracticeOnce(meta.topicId)
+        _voiceState.value = VoiceUiState.Speaking(replyText)
+        ttsEngine.speak(replyText)
+        _voiceState.value = VoiceUiState.Idle
+        true
+    } catch (e: Exception) {
+        // Любая ошибка LLM/TTS не должна ронять процесс — показываем её в UI.
+        Log.e("VoiceTutor", "Voice loop failed", e)
+        _voiceState.value = VoiceUiState.Error(e.message ?: "Ошибка ответа репетитора")
+        false
+    }
+
+    /** Продолжить разговор после прощания — история и контекст сохраняются. */
+    fun continueConversation() {
+        val convId = _conversationId.value ?: return
+        viewModelScope.launch {
+            repository.setEnded(convId, ended = false)?.let { _conversationMeta.value = it }
+            _voiceState.value = VoiceUiState.Idle
+        }
+    }
+
+    /** Ручное завершение разговора кнопкой — тот же итог, что и «goodbye». */
+    fun endConversation() {
+        val convId = _conversationId.value ?: return
+        viewModelScope.launch {
+            ttsEngine.stop()
+            repository.setEnded(convId, ended = true)?.let { _conversationMeta.value = it }
+            _voiceState.value = VoiceUiState.Idle
         }
     }
 
@@ -274,9 +339,9 @@ class ConversationViewModel @Inject constructor(
             try {
                 modelInstaller.ensureInitialized()
                 val raw = llmEngine.feedback(target.text, meta.cefrLevel)
-                val (better, note) = parseFeedback(raw)
+                val parsed = FeedbackParser.parse(raw)
                 updateInsight(anchor.id) {
-                    it.copy(better = better, note = note, feedbackLoading = false)
+                    it.copy(better = parsed.better, note = parsed.note, feedbackLoading = false)
                 }
             } catch (e: Exception) {
                 Log.e("VoiceTutor", "Feedback failed", e)
@@ -284,21 +349,6 @@ class ConversationViewModel @Inject constructor(
                     it.copy(feedbackLoading = false, error = e.message ?: "Ошибка разбора")
                 }
             }
-        }
-    }
-
-    /**
-     * Разбирает ответ модели формата `Better: …` / `Note: …`.
-     * Модель маленькая и иногда игнорирует формат — тогда показываем весь текст
-     * как пояснение, а исправленный вариант оставляем самой репликой.
-     */
-    private fun parseFeedback(raw: String): Pair<String, String> {
-        val betterLine = Regex("(?im)^\\s*Better:\\s*(.+)$").find(raw)?.groupValues?.get(1)?.trim()
-        val noteLine = Regex("(?im)^\\s*Note:\\s*(.+)$").find(raw)?.groupValues?.get(1)?.trim()
-        return if (betterLine != null || noteLine != null) {
-            (betterLine ?: "").to(noteLine ?: "")
-        } else {
-            "".to(raw.trim())
         }
     }
 

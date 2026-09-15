@@ -14,7 +14,12 @@ data class ConversationEntity(
     /** id темы курса, если диалог начат из roadmap; null — свободный разговор. */
     @ColumnInfo(name = "topic_id") val topicId: String? = null,
     @ColumnInfo(name = "created_at") val createdAtMillis: Long,
-    @ColumnInfo(name = "updated_at") val updatedAtMillis: Long
+    @ColumnInfo(name = "updated_at") val updatedAtMillis: Long,
+    /**
+     * Момент прощания («goodbye») — диалог считается завершённым и ждёт разбора.
+     * Обнуляется, когда пользователь решает продолжить разговор.
+     */
+    @ColumnInfo(name = "ended_at") val endedAtMillis: Long? = null
 )
 
 @Entity(tableName = "messages")
