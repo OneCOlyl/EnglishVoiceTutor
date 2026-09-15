@@ -35,9 +35,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.englishvoicetutor.presentation.components.TtsStatusBanner
 import com.example.englishvoicetutor.data.engine.TtsStatus
+import com.example.englishvoicetutor.domain.TextLayout
 import com.example.englishvoicetutor.domain.model.GrammarRule
 
 /**
@@ -107,17 +109,56 @@ private fun RuleContent(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
-        Text(rule.summaryRu, style = MaterialTheme.typography.titleSmall)
-        Spacer(Modifier.height(12.dp))
-        Text(rule.explanationRu, style = MaterialTheme.typography.bodyLarge)
+        // Суть правила — отдельной карточкой: это то, что стоит запомнить,
+        // и она не должна сливаться с объяснением.
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            )
+        ) {
+            Text(
+                rule.summaryRu,
+                style = MaterialTheme.typography.titleSmall,
+                lineHeight = 22.sp,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(14.dp)
+            )
+        }
+
+        RuleSectionTitle("Объяснение")
+        // Сплошной текст на телефоне не читается — разбиваем на абзацы
+        // и даём межстрочный интервал крупнее стандартного.
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            TextLayout.paragraphs(rule.explanationRu).forEach { paragraph ->
+                Text(
+                    paragraph,
+                    style = MaterialTheme.typography.bodyLarge,
+                    lineHeight = 26.sp
+                )
+            }
+        }
 
         Spacer(Modifier.height(16.dp))
         TtsStatusBanner(ttsStatus)
 
-        SectionTitle("Примеры")
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        RuleSectionTitle("Примеры")
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             rule.examples.forEach { example ->
-                ExampleRow(example = example, onSpeak = onSpeak)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                ) {
+                    ExampleRow(
+                        example = example,
+                        onSpeak = onSpeak,
+                        modifier = Modifier.padding(start = 14.dp, end = 4.dp, top = 12.dp, bottom = 12.dp)
+                    )
+                }
             }
         }
 
@@ -148,6 +189,7 @@ private fun RuleContent(
                         Text(
                             pitfall,
                             style = MaterialTheme.typography.bodyMedium,
+                            lineHeight = 22.sp,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
@@ -155,15 +197,13 @@ private fun RuleContent(
             }
         }
 
-        SectionTitle("Ещё примеры от репетитора")
+        RuleSectionTitle("Ещё примеры от репетитора")
         (extra as? ExtraExampleState.Ready)?.let { ready ->
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 ready.examples.forEach { example ->
                     ExampleRow(example = example, onSpeak = onSpeak)
                 }
             }
-            Spacer(Modifier.height(12.dp))
-            HorizontalDivider()
             Spacer(Modifier.height(12.dp))
         }
         (extra as? ExtraExampleState.Error)?.let {
@@ -192,4 +232,20 @@ private fun RuleContent(
         }
         Spacer(Modifier.height(32.dp))
     }
+}
+
+/**
+ * Заголовок секции правила: тонкая линия сверху задаёт видимое деление страницы —
+ * без неё объяснение, примеры и разбор сливаются в одну ленту текста.
+ */
+@Composable
+private fun RuleSectionTitle(text: String) {
+    Spacer(Modifier.height(20.dp))
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 14.dp, bottom = 10.dp)
+    )
 }

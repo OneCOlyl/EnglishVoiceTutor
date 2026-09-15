@@ -34,8 +34,12 @@ data class Conversation(
     /** Тема курса, из которой запущен диалог; null — свободный разговор. */
     val topicId: String? = null,
     val createdAtMillis: Long,
-    val updatedAtMillis: Long
-)
+    val updatedAtMillis: Long,
+    /** Время прощания, если диалог завершён; null — разговор продолжается. */
+    val endedAtMillis: Long? = null
+) {
+    val isEnded: Boolean get() = endedAtMillis != null
+}
 
 /**
  * Дополнительный разбор одной реплики, который подгружается по запросу пользователя
@@ -51,6 +55,18 @@ data class MessageInsight(
     val note: String? = null,
     val feedbackLoading: Boolean = false,
     val error: String? = null
+)
+
+/**
+ * Разбор одной реплики учащегося в итоговом отчёте по завершённому диалогу.
+ * [hasMistake] — false, когда модель вернула ту же фразу: такие реплики
+ * показываем свёрнутыми, чтобы ошибки не тонули среди правильных ответов.
+ */
+data class ReplyReview(
+    val original: String,
+    val better: String,
+    val note: String,
+    val hasMistake: Boolean
 )
 
 /**

@@ -12,7 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         VocabProgressEntity::class,
         TopicProgressEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -50,5 +50,16 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
             )
             """.trimIndent()
         )
+    }
+}
+
+/**
+ * v2 → v3: у диалога появилось состояние «завершён» (прощание «goodbye»).
+ * NULL означает «идёт», число — время завершения; диалог можно продолжить,
+ * и тогда колонка снова становится NULL.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE conversations ADD COLUMN ended_at INTEGER")
     }
 }
