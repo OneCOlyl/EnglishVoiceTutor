@@ -13,8 +13,11 @@ android {
         applicationId = "com.example.englishvoicetutor"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // Поднимать перед каждым релизом: versionCode обязан расти, иначе Android
+        // не поставит новый APK поверх установленного. versionName должен совпадать
+        // с тегом без префикса `v` (см. RELEASE.md).
+        versionCode = 2
+        versionName = "0.2.0"
     }
 
     buildTypes {
