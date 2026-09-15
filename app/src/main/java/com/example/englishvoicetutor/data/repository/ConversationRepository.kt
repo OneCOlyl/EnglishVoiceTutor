@@ -26,13 +26,18 @@ class ConversationRepository @Inject constructor(
     fun observeMessages(conversationId: Long): Flow<List<Message>> =
         dao.observeMessages(conversationId).map { list -> list.map { it.toDomain() } }
 
-    suspend fun createConversation(scenario: String, level: CefrLevel): Conversation {
+    suspend fun createConversation(
+        scenario: String,
+        level: CefrLevel,
+        topicId: String? = null
+    ): Conversation {
         val now = System.currentTimeMillis()
         val entity = ConversationEntity(
             title = scenario, // заменяется на сгенерированный LLM заголовок после первых реплик
             scenario = scenario,
             cefrLevel = level.name,
             summary = null,
+            topicId = topicId,
             createdAtMillis = now,
             updatedAtMillis = now
         )
@@ -79,6 +84,7 @@ private fun ConversationEntity.toDomain() = Conversation(
     scenario = scenario,
     cefrLevel = CefrLevel.valueOf(cefrLevel),
     summary = summary,
+    topicId = topicId,
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis
 )

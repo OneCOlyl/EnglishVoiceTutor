@@ -44,4 +44,9 @@ class StubTutorLlmEngine @Inject constructor() : LlmEngine {
         delay(300)
         return "Better: $text\nNote: Ошибок нет, звучит естественно."
     }
+
+    override suspend fun ask(prompt: String): String {
+        delay(300)
+        return "[заглушка ответа модели]"
+    }
 }

@@ -31,6 +31,8 @@ data class Conversation(
     val scenario: String,
     val cefrLevel: CefrLevel,
     val summary: String? = null,
+    /** Тема курса, из которой запущен диалог; null — свободный разговор. */
+    val topicId: String? = null,
     val createdAtMillis: Long,
     val updatedAtMillis: Long
 )

@@ -1,0 +1,247 @@
+{
+  "level": "B1",
+  "topics": [
+    {
+      "id": "b1-experience",
+      "order": 1,
+      "titleRu": "Опыт и достижения",
+      "titleEn": "Experience and achievements",
+      "goalRu": "Говорить о жизненном опыте: что вы уже делали, а что — ещё нет.",
+      "scenario": "Talking with a new acquaintance about places you have been to and things you have tried",
+      "vocabulary": [
+        { "word": "to achieve", "ru": "достигать", "ipa": "/əˈtʃiːv/", "exEn": "She has achieved a lot.", "exRu": "Она многого достигла." },
+        { "word": "so far", "ru": "пока что, к настоящему моменту", "ipa": "/soʊ fɑːr/", "exEn": "So far everything is fine.", "exRu": "Пока всё хорошо." },
+        { "word": "challenge", "ru": "испытание, сложная задача", "ipa": "/ˈtʃælɪndʒ/", "exEn": "It was a real challenge.", "exRu": "Это было настоящим испытанием." },
+        { "word": "to get used to", "ru": "привыкнуть к", "ipa": "/ɡet juːst tuː/", "exEn": "I got used to living alone.", "exRu": "Я привык жить один." },
+        { "word": "to improve", "ru": "улучшать(ся)", "ipa": "/ɪmˈpruːv/", "exEn": "My English has improved a lot.", "exRu": "Мой английский заметно улучшился." },
+        { "word": "opportunity", "ru": "возможность", "ipa": "/ˌɒpərˈtuːnəti/", "exEn": "It was a great opportunity.", "exRu": "Это была отличная возможность." },
+        { "word": "to give up", "ru": "сдаваться, бросать", "ipa": "/ɡɪv ʌp/", "exEn": "Don't give up now.", "exRu": "Не сдавайся сейчас." },
+        { "word": "worth it", "ru": "того стоит", "ipa": "/wɜːrθ ɪt/", "exEn": "It was hard, but it was worth it.", "exRu": "Было тяжело, но оно того стоило." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Present Perfect против Past Simple",
+          "summaryRu": "Perfect — про результат сейчас, Past Simple — про момент в прошлом.",
+          "explanationRu": "Present Perfect (have/has + третья форма) используется, когда время не названо и важен результат или опыт: I have been to Japan. Как только появляется конкретное время в прошлом, нужен Past Simple: I went to Japan in 2019. Типичные спутники Perfect: ever, never, already, yet, just, so far, recently.",
+          "pitfallRu": "В русском одно прошедшее время, поэтому русскоязычные либо не используют Perfect вовсе, либо ставят его с точной датой. Правило простое: сказали «когда» — Past Simple.",
+          "examples": [
+            { "en": "I have been to Japan.", "ru": "Я бывал в Японии.", "wrong": "I was in Japan." },
+            { "en": "I went to Japan in 2019.", "ru": "Я ездил в Японию в 2019 году.", "wrong": "I have gone to Japan in 2019." },
+            { "en": "Have you finished yet?", "ru": "Ты уже закончил?", "wrong": "Did you finish yet?" }
+          ]
+        },
+        {
+          "titleRu": "been и gone",
+          "summaryRu": "have been — был и вернулся, have gone — уехал и ещё там.",
+          "explanationRu": "He has been to Paris — он бывал в Париже и сейчас здесь. He has gone to Paris — он уехал в Париж и находится там. Разница принципиальная и заметная для носителя.",
+          "pitfallRu": "«I have gone to London three times» вместо «I have been» — говорящий как бы всё ещё в Лондоне три раза одновременно.",
+          "examples": [
+            { "en": "I have been to London twice.", "ru": "Я был в Лондоне дважды.", "wrong": "I have gone to London twice." },
+            { "en": "She has gone to the shop.", "ru": "Она ушла в магазин (её нет).", "wrong": "She has been to the shop, she is not here." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b1-opinions",
+      "order": 2,
+      "titleRu": "Мнение и обсуждение",
+      "titleEn": "Opinions and discussion",
+      "goalRu": "Высказать мнение, согласиться, вежливо возразить и обосновать позицию.",
+      "scenario": "Discussing with a friend whether remote work is better than working in an office",
+      "vocabulary": [
+        { "word": "in my opinion", "ru": "по-моему", "ipa": "/ɪn maɪ əˈpɪnjən/", "exEn": "In my opinion, it is too risky.", "exRu": "По-моему, это слишком рискованно." },
+        { "word": "to agree with", "ru": "соглашаться с", "ipa": "/əˈɡriː wɪð/", "exEn": "I agree with you.", "exRu": "Я согласен с тобой." },
+        { "word": "however", "ru": "однако", "ipa": "/haʊˈevər/", "exEn": "It is cheap; however, the quality is poor.", "exRu": "Это дёшево, однако качество плохое." },
+        { "word": "advantage", "ru": "преимущество", "ipa": "/ədˈvæntɪdʒ/", "exEn": "The main advantage is flexibility.", "exRu": "Главное преимущество — гибкость." },
+        { "word": "drawback", "ru": "недостаток", "ipa": "/ˈdrɔːbæk/", "exEn": "The biggest drawback is the price.", "exRu": "Самый большой недостаток — цена." },
+        { "word": "to point out", "ru": "указать, отметить", "ipa": "/pɔɪnt aʊt/", "exEn": "He pointed out an important detail.", "exRu": "Он отметил важную деталь." },
+        { "word": "on the other hand", "ru": "с другой стороны", "ipa": "/ɒn ði ˈʌðər hænd/", "exEn": "On the other hand, it saves time.", "exRu": "С другой стороны, это экономит время." },
+        { "word": "I see your point", "ru": "я понимаю, о чём вы", "ipa": "/aɪ siː jʊr pɔɪnt/", "exEn": "I see your point, but I disagree.", "exRu": "Я понимаю вашу мысль, но не согласен." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Согласие и несогласие: agree — это глагол",
+          "summaryRu": "«Я согласен» — I agree, а не I am agree.",
+          "explanationRu": "Agree — полноценный глагол, связка to be с ним не нужна: I agree, he agrees, I don't agree. Предлоги: agree with somebody, agree on something (договориться о чём-то), agree to do something (согласиться сделать).",
+          "pitfallRu": "«I am agree with you» — калька с «я согласен» как с прилагательным. Это одна из самых узнаваемых ошибок русскоязычных на B1.",
+          "examples": [
+            { "en": "I agree with you.", "ru": "Я согласен с тобой.", "wrong": "I am agree with you." },
+            { "en": "We agreed on the price.", "ru": "Мы договорились о цене.", "wrong": "We agreed about the price with each other." }
+          ]
+        },
+        {
+          "titleRu": "Слова-связки: however, although, despite",
+          "summaryRu": "Все три передают «однако», но грамматика у них разная.",
+          "explanationRu": "although + подлежащее и сказуемое: Although it was expensive, we bought it. Despite / in spite of + существительное или -ing: Despite the price, we bought it. However — вводное слово, отделяется запятыми и начинает новое предложение: It was expensive. However, we bought it.",
+          "pitfallRu": "«Despite of the rain» — лишнее of; либо despite, либо in spite of. И «Although, we bought it» — although не отделяется запятой как вводное слово.",
+          "examples": [
+            { "en": "Although it was expensive, we bought it.", "ru": "Хотя это было дорого, мы это купили.", "wrong": "Despite it was expensive, we bought it." },
+            { "en": "Despite the rain, we went out.", "ru": "Несмотря на дождь, мы вышли.", "wrong": "Despite of the rain, we went out." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b1-job-interview",
+      "order": 3,
+      "titleRu": "Собеседование",
+      "titleEn": "Job interview",
+      "goalRu": "Рассказать о себе профессионально: опыт, сильные стороны, мотивация.",
+      "scenario": "A job interview where the interviewer asks about your background and strengths",
+      "vocabulary": [
+        { "word": "background", "ru": "профессиональный опыт, бэкграунд", "ipa": "/ˈbækɡraʊnd/", "exEn": "Tell me about your background.", "exRu": "Расскажите о своём опыте." },
+        { "word": "skills", "ru": "навыки", "ipa": "/skɪlz/", "exEn": "I have strong analytical skills.", "exRu": "У меня сильные аналитические навыки." },
+        { "word": "strength", "ru": "сильная сторона", "ipa": "/streŋθ/", "exEn": "My main strength is attention to detail.", "exRu": "Моя главная сильная сторона — внимание к деталям." },
+        { "word": "to be in charge of", "ru": "руководить, отвечать за", "ipa": "/ɪn tʃɑːrdʒ ɒv/", "exEn": "I was in charge of a small team.", "exRu": "Я руководил небольшой командой." },
+        { "word": "to apply for", "ru": "подавать заявку на", "ipa": "/əˈplaɪ fɔːr/", "exEn": "I applied for this position last week.", "exRu": "Я подал заявку на эту позицию на прошлой неделе." },
+        { "word": "position", "ru": "должность", "ipa": "/pəˈzɪʃən/", "exEn": "Why are you interested in this position?", "exRu": "Почему вас интересует эта должность?" },
+        { "word": "to handle", "ru": "справляться с", "ipa": "/ˈhændəl/", "exEn": "How do you handle stress?", "exRu": "Как вы справляетесь со стрессом?" },
+        { "word": "notice period", "ru": "срок отработки при увольнении", "ipa": "/ˈnoʊtɪs ˈpɪriəd/", "exEn": "My notice period is one month.", "exRu": "Мой срок отработки — месяц." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Present Perfect Continuous: длительность до сих пор",
+          "summaryRu": "have/has been + -ing — действие началось раньше и продолжается сейчас.",
+          "explanationRu": "I have been working here for five years — работаю и сейчас. For указывает длительность (for five years), since — точку начала (since 2019). Это ключевая конструкция на собеседовании и в рассказе о себе.",
+          "pitfallRu": "Русскоязычные говорят «I work here for five years» (Present Simple) — по-английски это звучит как расписание, а не как стаж. Ещё частая путаница for и since.",
+          "examples": [
+            { "en": "I have been working here for five years.", "ru": "Я работаю здесь пять лет.", "wrong": "I work here for five years." },
+            { "en": "She has been learning English since 2019.", "ru": "Она учит английский с 2019 года.", "wrong": "She has been learning English for 2019." }
+          ]
+        },
+        {
+          "titleRu": "Косвенные вопросы — вежливая форма",
+          "summaryRu": "После Could you tell me... порядок слов становится прямым.",
+          "explanationRu": "Прямой вопрос: Where is the office? Косвенный: Could you tell me where the office is? Инверсия исчезает, вспомогательный do/does/did пропадает: Do you know what time it starts? — не «what time does it start».",
+          "pitfallRu": "Сохранение инверсии в косвенном вопросе («Could you tell me where is the office?») — ошибка, которая держится очень долго даже у сильных студентов.",
+          "examples": [
+            { "en": "Could you tell me where the office is?", "ru": "Не подскажете, где офис?", "wrong": "Could you tell me where is the office?" },
+            { "en": "I wonder what time it starts.", "ru": "Интересно, во сколько это начинается.", "wrong": "I wonder what time does it start." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b1-problems",
+      "order": 4,
+      "titleRu": "Проблемы и жалобы",
+      "titleEn": "Problems and complaints",
+      "goalRu": "Вежливо пожаловаться, описать проблему и добиться решения.",
+      "scenario": "Complaining at a hotel because your room was not cleaned and the Wi-Fi does not work",
+      "vocabulary": [
+        { "word": "to complain", "ru": "жаловаться", "ipa": "/kəmˈpleɪn/", "exEn": "I would like to complain about the noise.", "exRu": "Я хотел бы пожаловаться на шум." },
+        { "word": "to fix", "ru": "починить, исправить", "ipa": "/fɪks/", "exEn": "Can it be fixed today?", "exRu": "Это можно починить сегодня?" },
+        { "word": "issue", "ru": "проблема, вопрос", "ipa": "/ˈɪʃuː/", "exEn": "There is an issue with my booking.", "exRu": "С моим бронированием проблема." },
+        { "word": "refund", "ru": "возврат денег", "ipa": "/ˈriːfʌnd/", "exEn": "I would like a refund.", "exRu": "Я хотел бы вернуть деньги." },
+        { "word": "to apologise", "ru": "извиняться", "ipa": "/əˈpɒlədʒaɪz/", "exEn": "They apologised for the delay.", "exRu": "Они извинились за задержку." },
+        { "word": "delay", "ru": "задержка", "ipa": "/dɪˈleɪ/", "exEn": "The flight had a two-hour delay.", "exRu": "Рейс задержали на два часа." },
+        { "word": "to sort out", "ru": "уладить, разобраться", "ipa": "/sɔːrt aʊt/", "exEn": "We will sort it out immediately.", "exRu": "Мы уладим это немедленно." },
+        { "word": "unacceptable", "ru": "неприемлемый", "ipa": "/ˌʌnəkˈseptəbəl/", "exEn": "This is simply unacceptable.", "exRu": "Это просто неприемлемо." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Страдательный залог (Passive Voice)",
+          "summaryRu": "be + третья форма глагола: важно действие, а не исполнитель.",
+          "explanationRu": "The room was not cleaned — кто именно не убрал, неважно или неизвестно. Формула: be в нужном времени + Past Participle. My bag was stolen. The problem will be fixed. Исполнитель добавляется через by, но чаще опускается — в жалобах пассив звучит сдержаннее и профессиональнее, чем прямое обвинение.",
+          "pitfallRu": "Пропуск глагола be («The room not cleaned») и использование второй формы вместо третьей («The problem was fix»).",
+          "examples": [
+            { "en": "The room was not cleaned.", "ru": "Номер не убрали.", "wrong": "The room not cleaned." },
+            { "en": "My luggage was lost.", "ru": "Мой багаж потеряли.", "wrong": "My luggage lost." },
+            { "en": "The issue will be fixed today.", "ru": "Проблему решат сегодня.", "wrong": "The issue will be fix today." }
+          ]
+        },
+        {
+          "titleRu": "Смягчение претензии",
+          "summaryRu": "Прямая претензия по-английски звучит агрессивнее, чем по-русски.",
+          "explanationRu": "Вместо You made a mistake носитель скажет There seems to be a mistake. Полезные смягчители: I'm afraid..., There seems to be..., I was wondering if..., Would it be possible to...? Это не слабость, а норма делового общения.",
+          "pitfallRu": "Прямой перевод «Вы ошиблись» / «Дайте мне другой номер» воспринимается как хамство, хотя по-русски это нейтрально.",
+          "examples": [
+            { "en": "I'm afraid there is a problem with my room.", "ru": "Боюсь, с моим номером проблема.", "wrong": "You gave me a bad room." },
+            { "en": "Would it be possible to change the room?", "ru": "Не могли бы вы поменять номер?", "wrong": "Change my room now." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b1-stories",
+      "order": 5,
+      "titleRu": "Рассказать историю",
+      "titleEn": "Telling a story",
+      "goalRu": "Связно рассказать случай из жизни: фон, событие, развязка.",
+      "scenario": "Telling a friend about a funny or strange thing that happened to you recently",
+      "vocabulary": [
+        { "word": "suddenly", "ru": "внезапно", "ipa": "/ˈsʌdənli/", "exEn": "Suddenly the lights went out.", "exRu": "Внезапно погас свет." },
+        { "word": "while", "ru": "в то время как", "ipa": "/waɪl/", "exEn": "While I was cooking, he called.", "exRu": "Пока я готовил, он позвонил." },
+        { "word": "to realise", "ru": "осознать, понять", "ipa": "/ˈriːəlaɪz/", "exEn": "I realised I had no keys.", "exRu": "Я понял, что у меня нет ключей." },
+        { "word": "it turned out", "ru": "оказалось", "ipa": "/ɪt tɜːrnd aʊt/", "exEn": "It turned out to be a mistake.", "exRu": "Оказалось, это была ошибка." },
+        { "word": "luckily", "ru": "к счастью", "ipa": "/ˈlʌkɪli/", "exEn": "Luckily, nobody was hurt.", "exRu": "К счастью, никто не пострадал." },
+        { "word": "in the end", "ru": "в итоге", "ipa": "/ɪn ði end/", "exEn": "In the end, we took a taxi.", "exRu": "В итоге мы взяли такси." },
+        { "word": "embarrassing", "ru": "неловкий, смущающий", "ipa": "/ɪmˈbærəsɪŋ/", "exEn": "It was really embarrassing.", "exRu": "Это было очень неловко." },
+        { "word": "to end up", "ru": "закончиться тем, что", "ipa": "/end ʌp/", "exEn": "We ended up walking home.", "exRu": "В итоге мы пошли домой пешком." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Past Continuous и Past Simple в рассказе",
+          "summaryRu": "Continuous — фон, Simple — событие, которое его прервало.",
+          "explanationRu": "I was walking home when I saw him. Длительное действие-фон идёт в was/were + -ing, короткое событие — в Past Simple. Союзы: while обычно вводит длительное действие, when — короткое.",
+          "pitfallRu": "Ставить оба глагола в Past Simple («I walked home when I saw him») — грамматически возможно, но меняет смысл: получается «я пошёл домой, когда его увидел».",
+          "examples": [
+            { "en": "I was walking home when I saw him.", "ru": "Я шёл домой, когда увидел его.", "wrong": "I walked home when I was seeing him." },
+            { "en": "While she was cooking, the phone rang.", "ru": "Пока она готовила, зазвонил телефон.", "wrong": "While she cooked, the phone was ringing." }
+          ]
+        },
+        {
+          "titleRu": "Past Perfect: что было ещё раньше",
+          "summaryRu": "had + третья форма — действие до другого действия в прошлом.",
+          "explanationRu": "When I arrived, the train had already left — поезд ушёл до моего приезда. Past Perfect нужен только тогда, когда порядок событий не очевиден из контекста; если события идут по порядку, достаточно Past Simple.",
+          "pitfallRu": "Русскоязычные либо не используют Past Perfect вовсе, либо ставят его в каждое предложение рассказа. Он нужен именно для сдвига назад по времени.",
+          "examples": [
+            { "en": "When I arrived, the train had already left.", "ru": "Когда я приехал, поезд уже ушёл.", "wrong": "When I arrived, the train already left." },
+            { "en": "I realised I had forgotten my keys.", "ru": "Я понял, что забыл ключи.", "wrong": "I realised I forget my keys." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b1-future-plans",
+      "order": 6,
+      "titleRu": "Прогнозы и предположения",
+      "titleEn": "Predictions and possibilities",
+      "goalRu": "Говорить о будущем с разной степенью уверенности.",
+      "scenario": "Discussing how your city and your job might change in ten years",
+      "vocabulary": [
+        { "word": "probably", "ru": "вероятно", "ipa": "/ˈprɒbəbli/", "exEn": "I will probably stay here.", "exRu": "Я, вероятно, останусь здесь." },
+        { "word": "likely", "ru": "вероятный", "ipa": "/ˈlaɪkli/", "exEn": "Prices are likely to rise.", "exRu": "Цены, скорее всего, вырастут." },
+        { "word": "to expect", "ru": "ожидать", "ipa": "/ɪkˈspekt/", "exEn": "I expect it to be difficult.", "exRu": "Я ожидаю, что будет сложно." },
+        { "word": "to be about to", "ru": "вот-вот сделать", "ipa": "/əˈbaʊt tuː/", "exEn": "I was about to call you.", "exRu": "Я как раз собирался тебе звонить." },
+        { "word": "eventually", "ru": "в конце концов", "ipa": "/ɪˈventʃuəli/", "exEn": "Eventually he found a job.", "exRu": "В конце концов он нашёл работу." },
+        { "word": "unless", "ru": "если только не", "ipa": "/ənˈles/", "exEn": "I won't go unless you come.", "exRu": "Я не пойду, если ты не пойдёшь." },
+        { "word": "to look forward to", "ru": "с нетерпением ждать", "ipa": "/lʊk ˈfɔːrwərd tuː/", "exEn": "I am looking forward to seeing you.", "exRu": "С нетерпением жду встречи." },
+        { "word": "chances are", "ru": "скорее всего", "ipa": "/ˈtʃænsɪz ɑːr/", "exEn": "Chances are he will agree.", "exRu": "Скорее всего, он согласится." }
+      ],
+      "rules": [
+        {
+          "titleRu": "will, may, might: степень уверенности",
+          "summaryRu": "will — уверен, may — возможно, might — маловероятно.",
+          "explanationRu": "It will rain (уверен). It may rain (вполне возможно). It might rain (может быть, но шансы меньше). Все три — модальные: после них идёт начальная форма без to, форма не меняется по лицам.",
+          "pitfallRu": "«It will maybe rain» — избыточно; лучше may/might. И «He wills come» — модальные глаголы не берут -s.",
+          "examples": [
+            { "en": "It might rain later.", "ru": "Позже, возможно, пойдёт дождь.", "wrong": "It might to rain later." },
+            { "en": "He will probably agree.", "ru": "Он, вероятно, согласится.", "wrong": "He wills probably agree." }
+          ]
+        },
+        {
+          "titleRu": "Первый тип условия и придаточные времени",
+          "summaryRu": "После if и when будущее время не ставится.",
+          "explanationRu": "If it rains, we will stay home. When I get home, I will call you. В придаточной части — настоящее время, хотя речь о будущем. Это касается if, when, as soon as, until, before, after, unless.",
+          "pitfallRu": "«If it will rain» — одна из самых устойчивых ошибок русскоязычных, потому что по-русски мы говорим «если пойдёт дождь» в будущем.",
+          "examples": [
+            { "en": "If it rains, we will stay home.", "ru": "Если пойдёт дождь, мы останемся дома.", "wrong": "If it will rain, we will stay home." },
+            { "en": "I will call you when I arrive.", "ru": "Я позвоню, когда приеду.", "wrong": "I will call you when I will arrive." }
+          ]
+        }
+      ]
+    }
+  ]
+}

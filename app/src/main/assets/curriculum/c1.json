@@ -1,0 +1,204 @@
+{
+  "level": "C1",
+  "topics": [
+    {
+      "id": "c1-small-talk-idioms",
+      "order": 1,
+      "titleRu": "Светская беседа и идиомы",
+      "titleEn": "Small talk and idioms",
+      "goalRu": "Поддерживать лёгкую беседу так, как это делают носители, — с идиомами и разговорными оборотами.",
+      "scenario": "Chatting informally with colleagues at an office kitchen before a meeting starts",
+      "vocabulary": [
+        { "word": "to break the ice", "ru": "растопить лёд, разрядить обстановку", "ipa": "/breɪk ði aɪs/", "exEn": "He told a joke to break the ice.", "exRu": "Он пошутил, чтобы разрядить обстановку." },
+        { "word": "to be swamped", "ru": "быть заваленным работой", "ipa": "/swɒmpt/", "exEn": "Sorry, I have been swamped all week.", "exRu": "Извини, я всю неделю завален работой." },
+        { "word": "it slipped my mind", "ru": "вылетело из головы", "ipa": "/slɪpt maɪ maɪnd/", "exEn": "Sorry, it completely slipped my mind.", "exRu": "Прости, совершенно вылетело из головы." },
+        { "word": "off the top of my head", "ru": "навскидку", "ipa": "/ɒf ðə tɒp ɒv maɪ hed/", "exEn": "Off the top of my head, about twenty.", "exRu": "Навскидку — около двадцати." },
+        { "word": "to touch base", "ru": "коротко связаться, свериться", "ipa": "/tʌtʃ beɪs/", "exEn": "Let's touch base on Friday.", "exRu": "Давай свяжемся в пятницу." },
+        { "word": "long story short", "ru": "короче говоря", "ipa": "/lɔːŋ ˈstɔːri ʃɔːrt/", "exEn": "Long story short, we missed the train.", "exRu": "Короче говоря, мы опоздали на поезд." },
+        { "word": "to be on the same page", "ru": "понимать друг друга одинаково", "ipa": "/ɒn ðə seɪm peɪdʒ/", "exEn": "I want to make sure we are on the same page.", "exRu": "Хочу убедиться, что мы понимаем это одинаково." },
+        { "word": "no worries", "ru": "ничего страшного", "ipa": "/noʊ ˈwʌriz/", "exEn": "No worries, it happens.", "exRu": "Ничего страшного, бывает." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Идиомы нельзя переводить дословно и нельзя менять",
+          "summaryRu": "Идиома — фиксированная форма: замена слова разрушает её.",
+          "explanationRu": "break the ice нельзя сказать как break the snow, spill the beans — не pour the beans. Идиома работает только целиком. Второе правило — уместность: деловые идиомы (touch base, circle back) нормальны в офисе, но неуместны в академическом тексте.",
+          "pitfallRu": "Дословный перевод русских идиом («It is not my tea» вместо «It is not my cup of tea») звучит как ошибка, а не как игра слов. И перебор с идиомами читается как заучивание списка.",
+          "examples": [
+            { "en": "It's not my cup of tea.", "ru": "Это не моё.", "wrong": "It is not my tea." },
+            { "en": "Let's play it by ear.", "ru": "Будем действовать по обстановке.", "wrong": "Let's play it by the ear." }
+          ]
+        },
+        {
+          "titleRu": "Естественная реакция в диалоге",
+          "summaryRu": "Носители постоянно вставляют короткие отклики — без них речь звучит холодно.",
+          "explanationRu": "Right, sure, exactly, fair enough, that makes sense, oh really? Эти сигналы показывают, что вы слушаете. Сюда же относятся разделительные вопросы (It's freezing, isn't it?) — классический английский приём small talk.",
+          "pitfallRu": "Русскоязычные часто молчат до конца реплики собеседника — по английским меркам это читается как несогласие или незаинтересованность.",
+          "examples": [
+            { "en": "Fair enough, that makes sense.", "ru": "Справедливо, звучит логично.", "wrong": "I understand your position fully." },
+            { "en": "It's freezing today, isn't it?", "ru": "Сегодня жутко холодно, правда?", "wrong": "It's freezing today, no?" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c1-academic-argument",
+      "order": 2,
+      "titleRu": "Академическая аргументация",
+      "titleEn": "Academic argument",
+      "goalRu": "Строить взвешенный аргумент с оговорками, как в научной статье или эссе.",
+      "scenario": "Defending a research position in a seminar where others challenge your conclusions",
+      "vocabulary": [
+        { "word": "to suggest", "ru": "указывать на, предполагать", "ipa": "/səˈdʒest/", "exEn": "The data suggest a correlation.", "exRu": "Данные указывают на корреляцию." },
+        { "word": "to a certain extent", "ru": "в определённой степени", "ipa": "/tuː ə ˈsɜːrtən ɪkˈstent/", "exEn": "This is true to a certain extent.", "exRu": "В определённой степени это верно." },
+        { "word": "underlying", "ru": "лежащий в основе", "ipa": "/ˌʌndərˈlaɪɪŋ/", "exEn": "The underlying assumption is flawed.", "exRu": "Исходное допущение ошибочно." },
+        { "word": "to account for", "ru": "объяснять; составлять (долю)", "ipa": "/əˈkaʊnt fɔːr/", "exEn": "This accounts for most of the variation.", "exRu": "Это объясняет большую часть разброса." },
+        { "word": "compelling evidence", "ru": "убедительные свидетельства", "ipa": "/kəmˈpelɪŋ ˈevɪdəns/", "exEn": "There is compelling evidence against it.", "exRu": "Против этого есть убедительные свидетельства." },
+        { "word": "arguably", "ru": "возможно, есть основания считать", "ipa": "/ˈɑːrɡjuəbli/", "exEn": "This is arguably the best approach.", "exRu": "Пожалуй, это лучший подход." },
+        { "word": "to overstate", "ru": "преувеличивать", "ipa": "/ˌoʊvərˈsteɪt/", "exEn": "I think he overstates the risk.", "exRu": "Думаю, он преувеличивает риск." },
+        { "word": "nonetheless", "ru": "тем не менее", "ipa": "/ˌnʌnðəˈles/", "exEn": "Nonetheless, the trend is clear.", "exRu": "Тем не менее тенденция очевидна." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Хеджирование: осторожность вместо категоричности",
+          "summaryRu": "В английской академической традиции категоричное утверждение — слабость, а не сила.",
+          "explanationRu": "Вместо This proves that X пишут This suggests that X may be. Инструменты: may, might, tend to, appear to, seem to, largely, to some extent, it could be argued that. Осторожная формулировка защищает от контрпримера и считается признаком зрелого автора.",
+          "pitfallRu": "Русская научная традиция допускает более прямые утверждения, и калька («It is obvious that», «Everybody knows that») в английском тексте читается как наивность.",
+          "examples": [
+            { "en": "The data suggest that this may be the case.", "ru": "Данные позволяют предположить, что это может быть так.", "wrong": "The data prove that this is always true." },
+            { "en": "It could be argued that the effect is minor.", "ru": "Можно утверждать, что эффект незначителен.", "wrong": "Obviously the effect is minor." }
+          ]
+        },
+        {
+          "titleRu": "Номинализация: глагол превращается в существительное",
+          "summaryRu": "Академический английский предпочитает существительные глаголам.",
+          "explanationRu": "Разговорное: They decided quickly, and this affected the results. Академическое: The rapid decision affected the results. Это уплотняет текст и делает его безличным. Но злоупотребление номинализацией превращает текст в нечитаемый — нужна мера.",
+          "pitfallRu": "Обратная крайность, тоже частая: цепочка из пяти существительных подряд («the project implementation risk assessment procedure») — формально верно, но нечитаемо.",
+          "examples": [
+            { "en": "The rapid decision affected the results.", "ru": "Быстрое решение повлияло на результаты.", "wrong": "They decided fast so results were affected by this thing." },
+            { "en": "Further analysis is required.", "ru": "Требуется дополнительный анализ.", "wrong": "We need that somebody analyses more." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c1-business-register",
+      "order": 3,
+      "titleRu": "Деловой регистр",
+      "titleEn": "Business register",
+      "goalRu": "Переключаться между формальным и неформальным стилем осознанно.",
+      "scenario": "Handling a delicate situation with a client: bad news that must be delivered professionally",
+      "vocabulary": [
+        { "word": "to reach out", "ru": "связаться, обратиться", "ipa": "/riːtʃ aʊt/", "exEn": "Thank you for reaching out.", "exRu": "Спасибо, что обратились." },
+        { "word": "at your earliest convenience", "ru": "при первой возможности", "ipa": "/ˈɜːrliəst kənˈviːniəns/", "exEn": "Please reply at your earliest convenience.", "exRu": "Пожалуйста, ответьте при первой возможности." },
+        { "word": "to be in a position to", "ru": "иметь возможность", "ipa": "/ɪn ə pəˈzɪʃən tuː/", "exEn": "We are not in a position to confirm.", "exRu": "Мы пока не можем это подтвердить." },
+        { "word": "regrettably", "ru": "к сожалению (формально)", "ipa": "/rɪˈɡretəbli/", "exEn": "Regrettably, we must postpone.", "exRu": "К сожалению, нам придётся отложить." },
+        { "word": "to escalate", "ru": "передать на уровень выше", "ipa": "/ˈeskəleɪt/", "exEn": "I will escalate this internally.", "exRu": "Я передам это выше внутри компании." },
+        { "word": "going forward", "ru": "в дальнейшем", "ipa": "/ˈɡoʊɪŋ ˈfɔːrwərd/", "exEn": "Going forward, we will send weekly updates.", "exRu": "В дальнейшем мы будем присылать еженедельные отчёты." },
+        { "word": "to align", "ru": "согласовать позиции", "ipa": "/əˈlaɪn/", "exEn": "Let's align on priorities first.", "exRu": "Давайте сначала согласуем приоритеты." },
+        { "word": "with all due respect", "ru": "при всём уважении", "ipa": "/wɪð ɔːl djuː rɪˈspekt/", "exEn": "With all due respect, I disagree.", "exRu": "При всём уважении, я не согласен." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Регистр: одно и то же тремя способами",
+          "summaryRu": "Выбор регистра — это выбор глагола и длины фразы.",
+          "explanationRu": "Неформально: Can you send it? Нейтрально: Could you send it, please? Формально: I would be grateful if you could forward the document. Формальный регистр любит латинские глаголы (obtain, require, inform) вместо фразовых (get, need, tell), полные формы вместо сокращений и пассив.",
+          "pitfallRu": "Смешение регистров в одном письме («Dear Sir, I wanna check...») — самая заметная стилистическая ошибка на C1. И избыточная формальность в переписке с коллегой звучит холодно.",
+          "examples": [
+            { "en": "I would be grateful if you could confirm.", "ru": "Буду признателен, если вы подтвердите.", "wrong": "Dear Sir, confirm it ASAP please." },
+            { "en": "We are unable to proceed at this stage.", "ru": "На этом этапе мы не можем продолжить.", "wrong": "We can't do it now, sorry mate." }
+          ]
+        },
+        {
+          "titleRu": "Плохие новости по-английски",
+          "summaryRu": "Существует устойчивая схема: буфер, причина, новость, решение.",
+          "explanationRu": "Сначала признание ценности собеседника (Thank you for your patience), затем контекст и причина, только потом сама новость, и обязательно — что вы предлагаете вместо. Прямое Unfortunately we cannot без продолжения воспринимается как отказ от ответственности.",
+          "pitfallRu": "Русская деловая традиция чаще ставит новость первой. По-английски это читается как резкость, даже если формулировки вежливые.",
+          "examples": [
+            { "en": "We appreciate your patience. Due to a supplier delay, the launch will move to June. We propose a phased release instead.", "ru": "Благодарим за терпение. Из-за задержки поставщика запуск сдвигается на июнь. Вместо этого предлагаем поэтапный релиз.", "wrong": "The launch is delayed. Supplier problem." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c1-nuance-humour",
+      "order": 4,
+      "titleRu": "Ирония, подтекст, юмор",
+      "titleEn": "Irony, understatement and humour",
+      "goalRu": "Понимать, что имеется в виду, когда сказано противоположное.",
+      "scenario": "A British colleague gives you feedback full of understatement and you must read between the lines",
+      "vocabulary": [
+        { "word": "understatement", "ru": "преуменьшение", "ipa": "/ˈʌndərsteɪtmənt/", "exEn": "Calling it a small issue is an understatement.", "exRu": "Назвать это мелкой проблемой — сильное преуменьшение." },
+        { "word": "to read between the lines", "ru": "читать между строк", "ipa": "/riːd bɪˈtwiːn ðə laɪnz/", "exEn": "You have to read between the lines.", "exRu": "Нужно читать между строк." },
+        { "word": "tongue in cheek", "ru": "в шутку, не всерьёз", "ipa": "/tʌŋ ɪn tʃiːk/", "exEn": "He said it tongue in cheek.", "exRu": "Он сказал это не всерьёз." },
+        { "word": "to put it mildly", "ru": "мягко говоря", "ipa": "/pʊt ɪt ˈmaɪldli/", "exEn": "It went badly, to put it mildly.", "exRu": "Всё прошло плохо, мягко говоря." },
+        { "word": "not exactly", "ru": "не совсем (мягкое «нет»)", "ipa": "/nɒt ɪɡˈzæktli/", "exEn": "It is not exactly a masterpiece.", "exRu": "Это, мягко говоря, не шедевр." },
+        { "word": "quite", "ru": "довольно (часто означает «не очень»)", "ipa": "/kwaɪt/", "exEn": "It was quite good.", "exRu": "Было неплохо (но и не отлично)." },
+        { "word": "I'm not sure that's the best idea", "ru": "это плохая идея (вежливо)", "ipa": "/nɒt ʃʊr/", "exEn": "I'm not sure that's the best idea.", "exRu": "Мне кажется, это не лучшая идея." },
+        { "word": "with respect", "ru": "сигнал несогласия перед возражением", "ipa": "/wɪð rɪˈspekt/", "exEn": "With respect, the numbers say otherwise.", "exRu": "При всём уважении, цифры говорят об обратном." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Британское преуменьшение как код",
+          "summaryRu": "Фраза часто означает нечто более сильное, чем её буквальный смысл.",
+          "explanationRu": "«That's quite interesting» может значить «мне это не нравится». «I might join you later» часто значит «не приду». «With the greatest respect» предваряет резкое несогласие. Ключ — интонация и контекст: чем мягче формулировка в напряжённой ситуации, тем сильнее обычно несогласие.",
+          "pitfallRu": "Русскоязычные понимают такие фразы буквально и уходят со встречи уверенными, что всё согласовано, хотя им отказали.",
+          "examples": [
+            { "en": "I'm sure it's my fault, but I didn't quite follow that.", "ru": "Вы объяснили непонятно.", "wrong": "You explained it badly." },
+            { "en": "That's one way of looking at it.", "ru": "Я с вами не согласен.", "wrong": "You are wrong." }
+          ]
+        },
+        {
+          "titleRu": "Интонация меняет смысл",
+          "summaryRu": "В английском смысловое ударение переносится свободно и переопределяет фразу.",
+          "explanationRu": "I didn't say he stole the money — восемь разных смыслов в зависимости от того, какое слово выделено голосом. Порядок слов в английском фиксирован, поэтому вся работа по расстановке акцентов ложится на интонацию — там, где русский просто переставил бы слова.",
+          "pitfallRu": "Ровная интонация без выделения ключевого слова делает речь монотонной и заставляет носителя переспрашивать, даже если грамматика безупречна.",
+          "examples": [
+            { "en": "I didn't say HE stole it.", "ru": "Я не говорил, что это он украл.", "wrong": "Not he stole it I said." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c1-collocations",
+      "order": 5,
+      "titleRu": "Коллокации носителей",
+      "titleEn": "Native-like collocations",
+      "goalRu": "Подбирать слова, которые действительно сочетаются друг с другом.",
+      "scenario": "Describing a complex professional situation where precise word choice really matters",
+      "vocabulary": [
+        { "word": "to make a decision", "ru": "принять решение", "ipa": "/meɪk ə dɪˈsɪʒən/", "exEn": "We made a difficult decision.", "exRu": "Мы приняли трудное решение." },
+        { "word": "to take responsibility", "ru": "взять ответственность", "ipa": "/teɪk rɪˌspɒnsəˈbɪləti/", "exEn": "She took full responsibility.", "exRu": "Она взяла на себя всю ответственность." },
+        { "word": "to raise a question", "ru": "поднять вопрос", "ipa": "/reɪz ə ˈkwestʃən/", "exEn": "That raises an important question.", "exRu": "Это поднимает важный вопрос." },
+        { "word": "heavy rain", "ru": "сильный дождь", "ipa": "/ˈhevi reɪn/", "exEn": "We drove through heavy rain.", "exRu": "Мы ехали сквозь сильный дождь." },
+        { "word": "strong argument", "ru": "сильный аргумент", "ipa": "/strɔːŋ ˈɑːrɡjumənt/", "exEn": "That is a strong argument.", "exRu": "Это сильный аргумент." },
+        { "word": "to meet a deadline", "ru": "уложиться в срок", "ipa": "/miːt ə ˈdedlaɪn/", "exEn": "We met the deadline.", "exRu": "Мы уложились в срок." },
+        { "word": "deeply concerned", "ru": "глубоко обеспокоенный", "ipa": "/ˈdiːpli kənˈsɜːrnd/", "exEn": "I am deeply concerned about this.", "exRu": "Я глубоко обеспокоен этим." },
+        { "word": "to draw a conclusion", "ru": "сделать вывод", "ipa": "/drɔː ə kənˈkluːʒən/", "exEn": "It is too early to draw conclusions.", "exRu": "Делать выводы пока рано." }
+      ],
+      "rules": [
+        {
+          "titleRu": "Коллокации: make или do, strong или heavy",
+          "summaryRu": "Сочетаемость слов не выводится логически — её запоминают.",
+          "explanationRu": "make a decision, make a mistake, make progress — но do homework, do research, do business. Сильный дождь — heavy rain, а не strong rain; крепкий кофе — strong coffee, а не heavy. Именно коллокации, а не грамматика, выдают неносителя на уровне C1.",
+          "pitfallRu": "Дословный перевод русских сочетаний: «to take a decision» (британский вариант существует, но американцы скажут make), «to do a mistake», «strong rain».",
+          "examples": [
+            { "en": "We made a mistake.", "ru": "Мы допустили ошибку.", "wrong": "We did a mistake." },
+            { "en": "Heavy rain is expected.", "ru": "Ожидается сильный дождь.", "wrong": "Strong rain is expected." },
+            { "en": "He is doing research on this.", "ru": "Он ведёт исследование по этой теме.", "wrong": "He is making research on this." }
+          ]
+        },
+        {
+          "titleRu": "Инверсия для стилистического акцента",
+          "summaryRu": "Отрицательное наречие в начале фразы требует вопросительного порядка слов.",
+          "explanationRu": "Never have I seen such a mess. Not only did he refuse, but he also complained. Rarely does this happen. Конструкция звучит литературно и уместна в письменной речи и в выступлениях; в повседневном разговоре — избыточна.",
+          "pitfallRu": "Инверсию либо не используют вовсе, либо пишут без неё после отрицательного наречия: «Never I have seen» — заметная ошибка.",
+          "examples": [
+            { "en": "Never have I seen such a result.", "ru": "Никогда я не видел такого результата.", "wrong": "Never I have seen such a result." },
+            { "en": "Not only did he refuse, but he also complained.", "ru": "Он не только отказался, но ещё и пожаловался.", "wrong": "Not only he refused, but also he complained." }
+          ]
+        }
+      ]
+    }
+  ]
+}
