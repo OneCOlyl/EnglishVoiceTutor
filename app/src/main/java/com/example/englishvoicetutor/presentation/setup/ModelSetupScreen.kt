@@ -61,7 +61,9 @@ fun ModelSetupScreen(
                     models = viewModel.models,
                     installButtonText = "Скачать и загрузить модель",
                     onInstall = viewModel::install,
-                    initialCustomUrl = viewModel.lastCustomUrl,
+                    initialSelectedId = viewModel.formSelectedId ?: viewModel.models.first().id,
+                    initialCustomUrl = viewModel.formCustomUrl,
+                    initialToken = viewModel.formToken,
                 )
             }
 

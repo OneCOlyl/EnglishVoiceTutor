@@ -27,8 +27,17 @@ import javax.inject.Singleton
 
 private const val MODEL_FILE_NAME = "model.litertlm"
 
-/** Недокачанная или ещё не проверенная модель. Активной становится только переименованием. */
-private const val PART_FILE_NAME = "model.litertlm.part"
+/**
+ * Недокачанная или ещё не проверенная модель. Активной становится только переименованием.
+ *
+ * Расширение `.litertlm` обязательно: LiteRT-LM определяет формат по имени файла
+ * и на `model.litertlm.part` падает с «Unsupported or unknown file format», хотя
+ * байты те же (найдено на устройстве, 2026-10-20).
+ */
+private const val PART_FILE_NAME = "model.pending.litertlm"
+
+/** Прежнее имя временного файла — удаляем остатки при обновлении приложения. */
+private const val LEGACY_PART_FILE_NAME = "model.litertlm.part"
 private const val TAG = "ModelInstaller"
 
 private const val MAX_REDIRECTS = 10
@@ -46,11 +55,11 @@ class ModelInstallException(message: String, cause: Throwable? = null) : Excepti
  * первичной настройки и экраном настроек.
  *
  * Жизненный цикл файлов:
- * - загрузка идёт в `model.litertlm.part`, рядом в [ModelPreferences] запоминается,
+ * - загрузка идёт в `model.pending.litertlm`, рядом в [ModelPreferences] запоминается,
  *   какая модель (id + URL) в нём лежит — докачка через HTTP `Range` возможна только
  *   для той же самой модели, иначе в один файл склеились бы байты двух разных;
- * - после загрузки проверяется размер, затем движок поднимается прямо с `.part`;
- * - только если инициализация прошла, `.part` переименовывается в `model.litertlm`.
+ * - после загрузки проверяется размер, затем движок поднимается прямо с временного файла;
+ * - только если инициализация прошла, временный файл переименовывается в `model.litertlm`.
  *
  * Поэтому `model.litertlm` (по нему `MainActivity` решает, готово ли приложение)
  * всегда содержит модель, которая уже запускалась, а неудачная замена не трогает
@@ -92,7 +101,12 @@ class ModelInstaller @Inject constructor(
                     // Докачиваем только ту же модель с того же адреса — иначе начинаем заново.
                     val samePending = prefs.pendingModelId == option.id && prefs.pendingModelUrl == url
                     if (!samePending) partFile.delete()
+                    // Файл под старым именем движок не откроет, а докачать его в новый нельзя.
+                    File(context.filesDir, LEGACY_PART_FILE_NAME).delete()
                     prefs.setPendingModel(option.id, url)
+                    // До первого байта проходит несколько секунд (редиректы, TLS);
+                    // без этого экран после нажатия молчал, и кнопку жали повторно.
+                    send(LlmInstallState.Loading("Подключаемся к серверу…"))
 
                     download(
                         url = url,
@@ -129,6 +143,9 @@ class ModelInstaller @Inject constructor(
         try {
             llmEngine.initialize(partFile.absolutePath)
         } catch (e: Exception) {
+            // Сигнатура и размер — чтобы по логу отличить битый файл от HTML-страницы
+            // ошибки или чужого формата: сам файл сейчас будет удалён.
+            Log.w(TAG, "Model init failed: size=${partFile.length()}, header=${fileHeader(partFile)}")
             partFile.delete()
             prefs.clearPendingModel()
             val keepsOld = if (modelFile.exists()) " Прежняя модель сохранена." else ""
@@ -145,6 +162,17 @@ class ModelInstaller @Inject constructor(
         }
         llmEngine.onModelFileMoved(modelFile.absolutePath)
     }
+
+    private fun fileHeader(file: File): String = runCatching {
+        file.inputStream().use { input ->
+            val buf = ByteArray(16)
+            val n = input.read(buf)
+            buf.take(maxOf(n, 0)).joinToString("") { b ->
+                val c = b.toInt() and 0xFF
+                if (c in 0x20..0x7E) c.toChar().toString() else "\\x%02x".format(c)
+            }
+        }
+    }.getOrDefault("?")
 
     /**
      * Переподключает уже скачанную модель к движку после перезапуска процесса.
@@ -267,7 +295,11 @@ class ModelInstaller @Inject constructor(
         e is SocketTimeoutException -> "Сервер не отвечает. Повторите — загрузка продолжится с места остановки"
         e.message?.contains("ENOSPC") == true || e.message?.contains("No space left") == true ->
             "Закончилось место на устройстве"
-        e is IOException -> "Ошибка сети: ${e.message}. Повторите — загрузка продолжится с места остановки"
+        // Своё сообщение о недокачке уже по-русски; системные (`unexpected end of
+        // stream`, `Connection reset`) пользователю ничего не говорят — они в логе.
+        e is IOException && e.message?.startsWith("Загрузка прервалась") == true ->
+            "${e.message}. Повторите — загрузка продолжится с места остановки"
+        e is IOException -> "Соединение прервалось. Повторите — загрузка продолжится с места остановки"
         else -> e.message ?: "Неизвестная ошибка"
     }
 }

@@ -26,7 +26,19 @@ class ModelSetupViewModel @Inject constructor(
 ) : ViewModel() {
 
     val models: List<LlmModelOption> = LlmModelCatalog.all
-    val lastCustomUrl: String = prefs.customUrl.orEmpty()
+
+    /**
+     * Последний выбор в форме. Пока идёт загрузка, форма не показывается и теряет
+     * своё состояние; без этого после ошибки выбор и ссылка сбрасывались, и
+     * «Повторите» требовало заполнить всё заново. Токен — только в памяти
+     * ViewModel: на диск и в saved state он отсюда не попадает.
+     */
+    var formSelectedId: String? = null
+        private set
+    var formCustomUrl: String = prefs.customUrl.orEmpty()
+        private set
+    var formToken: String = ""
+        private set
 
     private val _state = MutableStateFlow<LlmInstallState>(LlmInstallState.Idle)
     val state: StateFlow<LlmInstallState> = _state
@@ -36,6 +48,9 @@ class ModelSetupViewModel @Inject constructor(
     fun install(option: LlmModelOption, token: String, customUrl: String) {
         // Повторное нажатие, пока идёт установка, не должно ставить вторую в очередь.
         if (installJob?.isActive == true) return
+        formSelectedId = option.id
+        if (option.isCustom) formCustomUrl = customUrl.trim()
+        if (option.requiresToken) formToken = token
         val url = if (option.isCustom) customUrl.trim() else option.url
         installJob = viewModelScope.launch {
             installer.install(option, url, token).collect { _state.value = it }
