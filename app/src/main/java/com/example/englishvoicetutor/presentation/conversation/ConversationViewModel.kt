@@ -29,7 +29,9 @@ import com.example.englishvoicetutor.domain.model.ModelDownloadState
 import com.example.englishvoicetutor.domain.model.NEW_CONVERSATION_ID
 import com.example.englishvoicetutor.domain.model.VoiceUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -129,7 +131,7 @@ class ConversationViewModel @Inject constructor(
     }
 
     fun startNewConversation() {
-        viewModelScope.launch {
+        launchExclusive {
             val conversation = repository.createConversation(scenarioInput, levelInput, navArgTopicId)
             _conversationMeta.value = conversation
             _conversationId.value = conversation.id
@@ -149,63 +151,94 @@ class ConversationViewModel @Inject constructor(
     /** Приветствие генерируем один раз за жизнь вьюмодели, даже если экран пересобрался. */
     private var openingSpoken = false
 
+    /**
+     * Текущая операция голосового цикла: подготовка микрофона, распознавание или ход
+     * репетитора. Одна на экран — отмена (завершение разговора, уход с экрана) гасит её
+     * целиком, и поздний результат уже не попадёт ни в историю, ни в озвучку.
+     */
+    private var activeJob: Job? = null
+
+    private fun launchExclusive(block: suspend () -> Unit) {
+        activeJob = viewModelScope.launch { block() }
+    }
+
     /** Запускает полный цикл: STT → LLM → TTS. */
     fun onMicTapped() {
-        val convId = _conversationId.value ?: return
-        val meta = _conversationMeta.value ?: return
+        if (_conversationId.value == null || _conversationMeta.value == null) return
 
         when (_voiceState.value) {
             is VoiceUiState.Idle, is VoiceUiState.Error -> {
-                viewModelScope.launch {
+                // Состояние ставим сразу, до suspend: первая подготовка микрофона —
+                // это загрузка модели, и второй тап за это время не должен стартовать
+                // ещё одну запись.
+                _voiceState.value = VoiceUiState.Preparing
+                launchExclusive {
                     try {
                         sttEngine.startRecording()
                         _voiceState.value = VoiceUiState.Recording
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
+                        Log.e("VoiceTutor", "Recording start failed", e)
                         _voiceState.value = VoiceUiState.Error(e.message ?: "Ошибка микрофона")
                     }
                 }
             }
             is VoiceUiState.Recording -> {
-                // Whisper-декод занимает несколько секунд — уводим его с главного потока
+                // Декод занимает несколько секунд — уводим его с главного потока
                 // (иначе фриз UI/ANR) и показываем состояние «Распознаю речь…».
                 _voiceState.value = VoiceUiState.Transcribing
-                viewModelScope.launch {
-                    val userText = withContext(Dispatchers.Default) { sttEngine.stopRecording() }
-                    Log.d("VoiceTutor", "STT result: '$userText'")
-                    onSpeechResult(userText)
+                launchExclusive {
+                    val userText = try {
+                        withContext(Dispatchers.Default) { sttEngine.stopRecording() }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        // Сбой распознавания — не «пустой ввод»: показываем ошибку.
+                        Log.e("VoiceTutor", "STT failed", e)
+                        _voiceState.value = VoiceUiState.Error(e.message ?: "Ошибка распознавания речи")
+                        return@launchExclusive
+                    }
+                    if (userText.isBlank()) {
+                        _voiceState.value = VoiceUiState.Error(
+                            "Не удалось распознать речь. Нажмите на микрофон и повторите"
+                        )
+                        return@launchExclusive
+                    }
+                    runUserTurn(userText)
                 }
             }
             else -> { /* идёт обработка, игнорируем */ }
         }
     }
 
-    /** Вызывается когда текст пользователя уже известен (из любого источника). */
+    /** Вызывается когда текст пользователя уже известен (набран вручную). */
     fun onSpeechResult(userText: String) {
-        val convId = _conversationId.value ?: run {
-            Log.d("VoiceTutor", "onSpeechResult: convId is null")
-            return
-        }
-        val meta = _conversationMeta.value ?: run {
-            Log.d("VoiceTutor", "onSpeechResult: meta is null")
-            return
-        }
-        Log.d("VoiceTutor", "onSpeechResult: text='$userText'")
-        if (userText.isBlank()) { _voiceState.value = VoiceUiState.Idle; return }
-        viewModelScope.launch {
-            // Контекст берём ДО записи новой реплики: иначе она попадёт в модель
-            // дважды — и как последняя строка истории, и как текущий ход,
-            // а на двух одинаковых подряд ходах модель начинает сбиваться.
-            val history = repository.getContextForResume(convId)
-            Log.d("VoiceTutor", "Saving user message...")
-            repository.appendMessage(convId, MessageRole.USER, userText)
-            // «Goodbye» закрывает разговор: репетитор прощается в ответ, после чего
-            // экран предлагает разбор — или продолжить, если прощание было случайным.
-            val farewell = ConversationFlow.isFarewell(userText)
-            val turnPrompt = if (farewell) TutorPrompt.farewellKick(userText) else userText
-            val ok = runTutorTurn(convId, meta, turnPrompt, history = history)
-            if (farewell && ok) {
-                repository.setEnded(convId, ended = true)?.let { _conversationMeta.value = it }
-            }
+        if (userText.isBlank()) return
+        // Пока идёт предыдущий ход, новый не начинаем: два хода параллельно
+        // перемешали бы реплики в истории.
+        if (activeJob?.isActive == true) return
+        launchExclusive { runUserTurn(userText) }
+    }
+
+    /** Ход учащегося: сохраняем реплику и запускаем ответ репетитора. */
+    private suspend fun runUserTurn(userText: String) {
+        val convId = _conversationId.value ?: return
+        val meta = _conversationMeta.value ?: return
+        // Сам текст в лог не пишем: это пользовательские данные (VC-009).
+        Log.d("VoiceTutor", "User turn: ${userText.length} chars")
+        // Контекст берём ДО записи новой реплики: иначе она попадёт в модель
+        // дважды — и как последняя строка истории, и как текущий ход,
+        // а на двух одинаковых подряд ходах модель начинает сбиваться.
+        val history = repository.getContextForResume(convId)
+        repository.appendMessage(convId, MessageRole.USER, userText)
+        // «Goodbye» закрывает разговор: репетитор прощается в ответ, после чего
+        // экран предлагает разбор — или продолжить, если прощание было случайным.
+        val farewell = ConversationFlow.isFarewell(userText)
+        val turnPrompt = if (farewell) TutorPrompt.farewellKick(userText) else userText
+        val ok = runTutorTurn(convId, meta, turnPrompt, history = history)
+        if (farewell && ok) {
+            repository.setEnded(convId, ended = true)?.let { _conversationMeta.value = it }
         }
     }
 
@@ -248,6 +281,9 @@ class ConversationViewModel @Inject constructor(
         ttsEngine.speak(replyText)
         _voiceState.value = VoiceUiState.Idle
         true
+    } catch (e: CancellationException) {
+        // Ход отменён (разговор завершён, экран закрыт) — это не ошибка репетитора.
+        throw e
     } catch (e: Exception) {
         // Любая ошибка LLM/TTS не должна ронять процесс — показываем её в UI.
         Log.e("VoiceTutor", "Voice loop failed", e)
@@ -264,14 +300,37 @@ class ConversationViewModel @Inject constructor(
         }
     }
 
-    /** Ручное завершение разговора кнопкой — тот же итог, что и «goodbye». */
+    /**
+     * Ручное завершение разговора кнопкой — тот же итог, что и «goodbye».
+     * Текущий ход отменяется: ответ, который ещё генерируется, в историю не попадёт.
+     */
     fun endConversation() {
         val convId = _conversationId.value ?: return
+        cancelActiveOperation()
         viewModelScope.launch {
-            ttsEngine.stop()
             repository.setEnded(convId, ended = true)?.let { _conversationMeta.value = it }
-            _voiceState.value = VoiceUiState.Idle
         }
+    }
+
+    /**
+     * Приложение ушло в фон (экран больше не виден). Запись в фоне Android всё равно
+     * глушит, поэтому её обрываем без распознавания; озвучку останавливаем, чтобы
+     * не говорить в пустоту. Генерация ответа продолжается — текст сохранится в истории.
+     */
+    fun onScreenStopped() {
+        when (_voiceState.value) {
+            is VoiceUiState.Preparing, is VoiceUiState.Recording -> cancelActiveOperation()
+            else -> ttsEngine.stop()
+        }
+    }
+
+    /** Отменяет текущую операцию и освобождает микрофон и звук. Повторный вызов безопасен. */
+    private fun cancelActiveOperation() {
+        activeJob?.cancel()
+        activeJob = null
+        sttEngine.cancelRecording()
+        ttsEngine.stop()
+        _voiceState.value = VoiceUiState.Idle
     }
 
     /**
@@ -355,6 +414,8 @@ class ConversationViewModel @Inject constructor(
     fun resetToIdle() { _voiceState.value = VoiceUiState.Idle }
 
     override fun onCleared() {
+        // viewModelScope отменит ход сам, но микрофон и звук живут в синглтонах движков.
+        sttEngine.cancelRecording()
         ttsEngine.stop()
         super.onCleared()
     }

@@ -33,4 +33,11 @@ class FeedbackParserTest {
         assertFalse(FeedbackParser.isMistake("I like coffee", ""))
         assertTrue(FeedbackParser.isMistake("I go yesterday", "I went yesterday."))
     }
+
+    @Test
+    fun `ответ не по формату не считается проверенным`() {
+        // LP-005: без строки Better разбор нельзя показывать как «всё верно».
+        assertFalse(FeedbackParser.isChecked(FeedbackParser.parse("Всё хорошо, звучит естественно.")))
+        assertTrue(FeedbackParser.isChecked(FeedbackParser.parse("Better: I like coffee.\nNote: всё верно.")))
+    }
 }

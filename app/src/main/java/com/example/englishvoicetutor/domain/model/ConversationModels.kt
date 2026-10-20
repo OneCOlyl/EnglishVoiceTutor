@@ -61,21 +61,31 @@ data class MessageInsight(
  * Разбор одной реплики учащегося в итоговом отчёте по завершённому диалогу.
  * [hasMistake] — false, когда модель вернула ту же фразу: такие реплики
  * показываем свёрнутыми, чтобы ошибки не тонули среди правильных ответов.
+ * [checked] — false, когда модель сломала формат и исправленного варианта нет:
+ * такую реплику нельзя показывать как «всё верно» (LP-005).
  */
 data class ReplyReview(
     val original: String,
     val better: String,
     val note: String,
-    val hasMistake: Boolean
+    val hasMistake: Boolean,
+    val checked: Boolean = true
 )
 
 /**
  * Состояние голосового пайплайна, которое отображает UI.
- * Idle -> Listening -> Transcribing -> Thinking -> Speaking -> Idle (цикл).
+ * Idle -> Preparing -> Recording -> Transcribing -> Thinking -> Speaking -> Idle (цикл).
+ * Из любого шага возможен переход в Error; из Idle и Error можно начать новую запись.
+ * Отмена хода (завершение разговора, уход с экрана) возвращает в Idle.
  */
 sealed interface VoiceUiState {
     data object Idle : VoiceUiState
-    data object Listening : VoiceUiState
+
+    /**
+     * Микрофон готовится: при первом использовании это загрузка модели распознавания
+     * (~500 МБ). Повторные нажатия в этом состоянии игнорируются.
+     */
+    data object Preparing : VoiceUiState
     data object Transcribing : VoiceUiState
     data object Thinking : VoiceUiState
     data object Recording : VoiceUiState

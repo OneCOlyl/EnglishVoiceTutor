@@ -36,6 +36,26 @@ class ModelPreferences @Inject constructor(
             .apply()
     }
 
+    /** id модели, которая сейчас докачивается в `model.litertlm.part`. */
+    val pendingModelId: String?
+        get() = prefs.getString(KEY_PENDING_ID, null)
+
+    /** Адрес, с которого докачивается `.part`: докачка с другого адреса склеила бы чужие байты. */
+    val pendingModelUrl: String?
+        get() = prefs.getString(KEY_PENDING_URL, null)
+
+    /** Запомнить, что лежит в `.part`. Пишется синхронно — до первого байта загрузки. */
+    fun setPendingModel(id: String, url: String) {
+        prefs.edit()
+            .putString(KEY_PENDING_ID, id)
+            .putString(KEY_PENDING_URL, url)
+            .commit()
+    }
+
+    fun clearPendingModel() {
+        prefs.edit().remove(KEY_PENDING_ID).remove(KEY_PENDING_URL).apply()
+    }
+
     /** Запомнить последнюю введённую «свою ссылку», чтобы предзаполнить поле. */
     fun setCustomUrl(url: String) {
         prefs.edit().putString(KEY_CUSTOM_URL, url).apply()
@@ -46,5 +66,7 @@ class ModelPreferences @Inject constructor(
         const val KEY_MODEL_ID = "installed_model_id"
         const val KEY_MODEL_LABEL = "installed_model_label"
         const val KEY_CUSTOM_URL = "custom_url"
+        const val KEY_PENDING_ID = "pending_model_id"
+        const val KEY_PENDING_URL = "pending_model_url"
     }
 }

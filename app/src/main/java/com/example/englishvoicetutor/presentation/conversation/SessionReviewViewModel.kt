@@ -90,14 +90,17 @@ class SessionReviewViewModel @Inject constructor(
                         original = message.text,
                         better = parsed.better,
                         note = parsed.note,
-                        hasMistake = FeedbackParser.isMistake(message.text, parsed.better)
+                        hasMistake = FeedbackParser.isMistake(message.text, parsed.better),
+                        checked = FeedbackParser.isChecked(parsed)
                     )
                     _state.value = SessionReviewState.Running(index + 1, replies.size)
                 }
 
-                // Ошибки — наверх: ради них экран и открывают.
+                // Ошибки — наверх: ради них экран и открывают; непроверенные — следом.
                 _state.value = SessionReviewState.Ready(
-                    results.sortedByDescending { it.hasMistake }
+                    results.sortedWith(
+                        compareByDescending<ReplyReview> { it.hasMistake }.thenBy { it.checked }
+                    )
                 )
             } catch (e: Exception) {
                 Log.e("VoiceTutor", "Session review failed", e)

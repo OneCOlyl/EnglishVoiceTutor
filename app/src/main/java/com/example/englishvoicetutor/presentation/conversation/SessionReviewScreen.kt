@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -137,19 +138,20 @@ private fun ReviewProgress(state: SessionReviewState.Running, modifier: Modifier
 @Composable
 private fun ReviewList(reviews: List<ReplyReview>, modifier: Modifier = Modifier) {
     val mistakes = reviews.count { it.hasMistake }
+    val unchecked = reviews.count { !it.checked }
 
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item { SummaryCard(total = reviews.size, mistakes = mistakes) }
+        item { SummaryCard(total = reviews.size, mistakes = mistakes, unchecked = unchecked) }
         items(reviews) { review -> ReviewCard(review) }
     }
 }
 
 @Composable
-private fun SummaryCard(total: Int, mistakes: Int) {
+private fun SummaryCard(total: Int, mistakes: Int, unchecked: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
@@ -159,13 +161,18 @@ private fun SummaryCard(total: Int, mistakes: Int) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                if (mistakes == 0) "Ошибок не нашлось" else "Есть что поправить",
+                when {
+                    mistakes > 0 -> "Есть что поправить"
+                    unchecked > 0 -> "Проверены не все реплики"
+                    else -> "Ошибок не нашлось"
+                },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Проверено реплик: $total · с замечаниями: $mistakes",
+                "Проверено реплик: ${total - unchecked} · с замечаниями: $mistakes" +
+                    if (unchecked > 0) " · не удалось проверить: $unchecked" else "",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -175,10 +182,10 @@ private fun SummaryCard(total: Int, mistakes: Int) {
 
 @Composable
 private fun ReviewCard(review: ReplyReview) {
-    val accent = if (review.hasMistake) {
-        MaterialTheme.colorScheme.error
-    } else {
-        MaterialTheme.colorScheme.primary
+    val accent = when {
+        review.hasMistake -> MaterialTheme.colorScheme.error
+        !review.checked -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.primary
     }
 
     Card(
@@ -191,14 +198,22 @@ private fun ReviewCard(review: ReplyReview) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    if (review.hasMistake) Icons.Filled.EditNote else Icons.Filled.CheckCircle,
+                    when {
+                        review.hasMistake -> Icons.Filled.EditNote
+                        !review.checked -> Icons.Filled.Info
+                        else -> Icons.Filled.CheckCircle
+                    },
                     contentDescription = null,
                     tint = accent,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    if (review.hasMistake) "Вы сказали" else "Всё верно",
+                    when {
+                        review.hasMistake -> "Вы сказали"
+                        !review.checked -> "Не удалось проверить"
+                        else -> "Всё верно"
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     color = accent
                 )
