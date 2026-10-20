@@ -1,6 +1,7 @@
 package com.example.englishvoicetutor.data.engine
 
 import android.content.Context
+import android.os.SystemClock
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
@@ -159,15 +160,25 @@ class SherpaOnnxTtsEngine @Inject constructor(
         try {
             player.play()
             for (sentence in splitIntoSentences(text)) {
-                if (stopRequested) break
+                // Отмена корутины (ход репетитора отменён, экран закрыт) обрывает озвучку
+                // так же, как stop(): иначе реплика договаривалась бы до конца.
+                if (stopRequested || !currentCoroutineContext().isActive) break
                 // Диктора и скорость читаем на каждое предложение: смена настройки
                 // должна слышаться сразу, без пересоздания движка.
+                val startedAt = SystemClock.elapsedRealtime()
                 val audio = engine.generate(
                     sentence,
                     voicePreferences.speakerId.value,
                     voicePreferences.speed.value
                 )
-                if (stopRequested) break
+                // Метрика EVT-501: время синтеза против длины полученного звука.
+                Log.d(
+                    TAG,
+                    "TTS sentence: ${sentence.length} chars, synth=" +
+                        "${SystemClock.elapsedRealtime() - startedAt}ms, " +
+                        "audio=${audio.samples.size * 1000L / sampleRate}ms"
+                )
+                if (stopRequested || !currentCoroutineContext().isActive) break
                 // WRITE_BLOCKING притормаживает нас на длину буфера — следующее
                 // предложение успевает синтезироваться, пока играет предыдущее.
                 val written = player.write(

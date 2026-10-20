@@ -32,23 +32,9 @@ interface ConversationDao {
     @Query("SELECT * FROM messages WHERE conversation_id = :conversationId ORDER BY timestamp ASC")
     fun observeMessages(conversationId: Long): Flow<List<MessageEntity>>
 
-    /** Первые сообщения диалога — знакомство, которое всегда идёт в контекст LLM. */
-    @Query("SELECT * FROM messages WHERE conversation_id = :conversationId ORDER BY timestamp ASC LIMIT :limit")
-    suspend fun getFirstMessages(conversationId: Long, limit: Int): List<MessageEntity>
-
-    @Query("SELECT COUNT(*) FROM messages WHERE conversation_id = :conversationId")
-    suspend fun countMessages(conversationId: Long): Int
-
-    /** Вся переписка диалога по порядку — для разбора ошибок после завершения. */
+    /** Вся переписка диалога по порядку — для разбора ошибок и контекста LLM. */
     @Query("SELECT * FROM messages WHERE conversation_id = :conversationId ORDER BY timestamp ASC")
     suspend fun getMessages(conversationId: Long): List<MessageEntity>
-
-    /**
-     * Последние N сообщений — то, что реально уходит в контекст LLM при продолжении
-     * старого диалога; более старая часть схлопывается в summary (см. п.4.1 плана).
-     */
-    @Query("SELECT * FROM messages WHERE conversation_id = :conversationId ORDER BY timestamp DESC LIMIT :limit")
-    suspend fun getRecentMessages(conversationId: Long, limit: Int): List<MessageEntity>
 
     @Query("DELETE FROM conversations WHERE id = :id")
     suspend fun deleteConversationById(id: Long)

@@ -127,13 +127,24 @@ fun ModelInstallProgress(state: LlmInstallState, modifier: Modifier = Modifier) 
             is LlmInstallState.Downloading -> {
                 Text("Скачиваем модель…", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(16.dp))
-                LinearProgressIndicator(
-                    progress = { state.progressPercent / 100f },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // Сервер может не сообщить размер — тогда процент выдуманный,
+                // показываем бесконечную полосу и только скачанные мегабайты.
+                val sizeKnown = state.totalMb > 0
+                if (sizeKnown) {
+                    LinearProgressIndicator(
+                        progress = { state.progressPercent / 100f },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "${state.downloadedMb} МБ / ${state.totalMb} МБ (${state.progressPercent}%)",
+                    if (sizeKnown) {
+                        "${state.downloadedMb} МБ / ${state.totalMb} МБ (${state.progressPercent}%)"
+                    } else {
+                        "Скачано ${state.downloadedMb} МБ"
+                    },
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(Modifier.height(4.dp))

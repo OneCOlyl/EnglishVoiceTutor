@@ -3,6 +3,7 @@ package com.example.englishvoicetutor.data.repository
 import com.example.englishvoicetutor.data.local.ConversationDao
 import com.example.englishvoicetutor.data.local.ConversationEntity
 import com.example.englishvoicetutor.data.local.MessageEntity
+import com.example.englishvoicetutor.domain.ConversationContext
 import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Conversation
 import com.example.englishvoicetutor.domain.model.Message
@@ -11,18 +12,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
-
-/** Сколько последних сообщений отдаём в контекст LLM при продолжении диалога (см. п.4.1 плана). */
-private const val RECENT_MESSAGES_FOR_CONTEXT = 20
-
-/**
- * Сколько сообщений от начала диалога тянем в контекст всегда.
- *
- * Знакомство (имя, откуда, чем занимается) происходит в первых репликах, и когда
- * окно уезжает вперёд, модель теряет этот факт и здоровается заново. Дешевле
- * прибить начало к контексту, чем гонять суммаризацию на каждый ход.
- */
-private const val OPENING_MESSAGES_FOR_CONTEXT = 4
 
 @Singleton
 class ConversationRepository @Inject constructor(
@@ -73,24 +62,11 @@ class ConversationRepository @Inject constructor(
         dao.getMessages(conversationId).map { it.toDomain() }
 
     /**
-     * Контекст для LLM: начало диалога + последние сообщения.
-     *
-     * Середина длинного разговора выпадает — это осознанный размен: маленькая модель
-     * всё равно не удержит полную историю, а знакомство и свежие реплики важнее.
+     * Контекст для LLM: начало диалога + последние сообщения в пределах бюджета.
+     * Правило отбора — [ConversationContext.select].
      */
-    suspend fun getContextForResume(conversationId: Long): List<Message> {
-        val recent = dao.getRecentMessages(conversationId, RECENT_MESSAGES_FOR_CONTEXT)
-            .reversed()
-            .map { it.toDomain() }
-        val total = dao.countMessages(conversationId)
-        if (total <= RECENT_MESSAGES_FOR_CONTEXT) return recent
-
-        val opening = dao.getFirstMessages(conversationId, OPENING_MESSAGES_FOR_CONTEXT)
-            .map { it.toDomain() }
-        // Если окно уже дотянулось до начала, склейка только задвоила бы реплики.
-        val recentIds = recent.map { it.id }.toSet()
-        return opening.filterNot { it.id in recentIds } + recent
-    }
+    suspend fun getContextForResume(conversationId: Long): List<Message> =
+        ConversationContext.select(dao.getMessages(conversationId).map { it.toDomain() })
 
     suspend fun saveSummary(conversationId: Long, summary: String) {
         dao.getConversation(conversationId)?.let {

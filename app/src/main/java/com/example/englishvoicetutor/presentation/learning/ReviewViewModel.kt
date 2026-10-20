@@ -200,6 +200,8 @@ class ReviewViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        // Ушли с экрана посреди записи — микрофон освобождаем, а не держим до следующего тапа.
+        sttEngine.cancelRecording()
         ttsEngine.stop()
         super.onCleared()
     }

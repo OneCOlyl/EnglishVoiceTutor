@@ -64,6 +64,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Message
 import com.example.englishvoicetutor.domain.model.MessageInsight
@@ -89,6 +91,9 @@ fun ConversationScreen(
     val modelState by viewModel.modelDownloadState.collectAsState()
     val insights by viewModel.insights.collectAsState()
     val ttsStatus by viewModel.ttsStatus.collectAsState()
+
+    // Свернули приложение или перекрыли экран — запись и озвучка не должны продолжаться.
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.onScreenStopped() }
 
     Scaffold(
         topBar = {
@@ -386,7 +391,8 @@ private fun InputBar(
     onTextSubmit: (String) -> Unit,
 ) {
     var text by rememberSaveable { mutableStateOf("") }
-    val busy = voiceState is VoiceUiState.Transcribing || voiceState is VoiceUiState.Thinking
+    val busy = voiceState is VoiceUiState.Preparing ||
+        voiceState is VoiceUiState.Transcribing || voiceState is VoiceUiState.Thinking
     val recording = voiceState is VoiceUiState.Recording
     val hasText = text.isNotBlank()
 
@@ -463,7 +469,7 @@ private fun InputBar(
 private fun StatusLine(voiceState: VoiceUiState) {
     val text = when (voiceState) {
         is VoiceUiState.Idle -> "Нажмите на микрофон и говорите по-английски"
-        is VoiceUiState.Listening -> "Слушаю…"
+        is VoiceUiState.Preparing -> "Готовлю микрофон…"
         is VoiceUiState.Transcribing -> "Распознаю речь…"
         is VoiceUiState.Thinking -> "Репетитор думает…"
         is VoiceUiState.Recording -> "Говорите… Нажмите снова чтобы остановить"
