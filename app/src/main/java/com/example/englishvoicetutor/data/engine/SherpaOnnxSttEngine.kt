@@ -1,6 +1,7 @@
 package com.example.englishvoicetutor.data.engine
 
 import android.content.Context
+import android.os.SystemClock
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioRecord
@@ -20,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
@@ -62,11 +65,20 @@ class SherpaOnnxSttEngine @Inject constructor(
     val downloadState: StateFlow<ModelDownloadState> = _downloadState.asStateFlow()
 
     /**
+     * Сериализует подготовку модели: без него два быстрых нажатия на микрофон во время
+     * первой загрузки (~500 МБ) запускали две загрузки в один и тот же временный архив.
+     */
+    private val prepareMutex = Mutex()
+
+    /**
      * Убеждаемся, что модель скачана, распакована и загружена в память.
      * Вызывается лениво при первом использовании микрофона.
      */
-    private suspend fun ensureRecognizer(): OfflineRecognizer = withContext(Dispatchers.IO) {
-        recognizer?.let { return@withContext it }
+    private suspend fun ensureRecognizer(): OfflineRecognizer = prepareMutex.withLock {
+        recognizer ?: withContext(Dispatchers.IO) { loadRecognizer() }
+    }
+
+    private fun loadRecognizer(): OfflineRecognizer {
 
         deleteOutdatedModels()
 
@@ -112,7 +124,7 @@ class SherpaOnnxSttEngine @Inject constructor(
         )
         val r = OfflineRecognizer(config = config)
         _downloadState.value = ModelDownloadState.Ready
-        r.also { recognizer = it }
+        return r.also { recognizer = it }
     }
 
     /**
@@ -142,6 +154,9 @@ class SherpaOnnxSttEngine @Inject constructor(
 
     override suspend fun startRecording() {
         ensureRecognizer() // гарантируем, что модель загружена, до старта записи
+        // Повторный старт (двойной тап, пока грузилась модель) не должен оставить
+        // первый AudioRecord висеть с занятым микрофоном.
+        releaseRecorder()
 
         val minBuf = AudioRecord.getMinBufferSize(
             SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT
@@ -166,7 +181,7 @@ class SherpaOnnxSttEngine @Inject constructor(
             else MediaRecorder.AudioSource.VOICE_RECOGNITION
         Log.d(TAG, "AudioSource: ${if (unprocessedSupported) "UNPROCESSED" else "VOICE_RECOGNITION"}")
 
-        audioRecord = try {
+        val record = try {
             AudioRecord(
                 audioSource,
                 SAMPLE_RATE,
@@ -177,10 +192,22 @@ class SherpaOnnxSttEngine @Inject constructor(
         } catch (e: SecurityException) {
             throw IllegalStateException("Нет разрешения на микрофон", e)
         }
+        // Без разрешения или при занятом микрофоне часть прошивок не бросает исключение,
+        // а отдаёт неинициализированный AudioRecord — запись тогда молча была бы пустой.
+        if (record.state != AudioRecord.STATE_INITIALIZED) {
+            record.release()
+            throw IllegalStateException("Микрофон недоступен — проверьте разрешение или закройте другое приложение, которое пишет звук")
+        }
+        audioRecord = record
 
         // Гасим системные аудиоэффекты: они настроены под человеческий слух, а не под ASR.
-        audioRecord?.audioSessionId?.let { disableAudioEffects(it) }
-        audioRecord!!.startRecording()
+        disableAudioEffects(record.audioSessionId)
+        try {
+            record.startRecording()
+        } catch (e: IllegalStateException) {
+            releaseRecorder()
+            throw IllegalStateException("Не удалось начать запись с микрофона", e)
+        }
 
         recordingThread = Thread {
             val buffer = ShortArray(chunkSamples)
@@ -197,26 +224,48 @@ class SherpaOnnxSttEngine @Inject constructor(
     }
 
     override fun stopRecording(): String {
-        audioRecord?.stop()
-        audioRecord?.release()
-        audioRecord = null
-
-        recordingThread?.join(2000) // ждём, пока поток допишет последние чанки
-        recordingThread = null
+        releaseRecorder()
 
         val samples = drainRecordedSamples()
-        val r = recognizer
-        if (r == null || samples.isEmpty()) return ""
+        // Модели нет в памяти — это сбой, а не тишина: пустая строка выглядела бы
+        // как «ничего не сказано» и скрыла бы ошибку от пользователя.
+        val r = recognizer ?: throw IllegalStateException("Модель распознавания не загружена")
+        if (samples.isEmpty()) return ""
 
         // Модель офлайновая (non-streaming): скармливаем всю фразу разом одним стримом.
+        val startedAt = SystemClock.elapsedRealtime()
         val stream = r.createStream()
         stream.acceptWaveform(samples, SAMPLE_RATE)
         r.decode(stream)
         val text = r.getResult(stream).text
         stream.release()
 
-        Log.d(TAG, "ASR result: '$text'")
+        // Сам текст не пишем: транскрипт — пользовательские данные (VC-009).
+        // Время декодирования — метрика EVT-501.
+        Log.d(
+            TAG,
+            "ASR result: ${text.length} chars from ${samples.size} samples, " +
+                "decode=${SystemClock.elapsedRealtime() - startedAt}ms"
+        )
         return text.trim()
+    }
+
+    /** Обрывает запись без распознавания — для ухода с экрана и сворачивания приложения. */
+    override fun cancelRecording() {
+        releaseRecorder()
+        drainRecordedSamples()
+    }
+
+    /** Останавливает и освобождает микрофон; повторный вызов безопасен. */
+    private fun releaseRecorder() {
+        audioRecord?.let { record ->
+            runCatching { record.stop() }
+            record.release()
+        }
+        audioRecord = null
+
+        recordingThread?.join(2000) // ждём, пока поток допишет последние чанки
+        recordingThread = null
     }
 
     /** Склеивает накопленные чанки в один FloatArray в диапазоне [-1, 1], как ждёт sherpa-onnx. */

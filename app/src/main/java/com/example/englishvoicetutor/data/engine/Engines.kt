@@ -11,7 +11,20 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface SttEngine {
     suspend fun startRecording()
+
+    /**
+     * Останавливает запись и возвращает распознанный текст.
+     * Пустая строка — речь не распознана; сбой распознавания бросает исключение.
+     */
     fun stopRecording(): String
+
+    /**
+     * Обрывает запись без распознавания (уход с экрана, сворачивание приложения).
+     * Безопасно вызывать, когда запись не идёт.
+     */
+    fun cancelRecording() {
+        runCatching { stopRecording() }
+    }
 }
 
 /**

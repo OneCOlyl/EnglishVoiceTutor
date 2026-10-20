@@ -8,6 +8,7 @@ import com.example.englishvoicetutor.domain.model.LlmInstallState
 import com.example.englishvoicetutor.domain.model.LlmModelCatalog
 import com.example.englishvoicetutor.domain.model.LlmModelOption
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -30,9 +31,13 @@ class ModelSetupViewModel @Inject constructor(
     private val _state = MutableStateFlow<LlmInstallState>(LlmInstallState.Idle)
     val state: StateFlow<LlmInstallState> = _state
 
+    private var installJob: Job? = null
+
     fun install(option: LlmModelOption, token: String, customUrl: String) {
+        // Повторное нажатие, пока идёт установка, не должно ставить вторую в очередь.
+        if (installJob?.isActive == true) return
         val url = if (option.isCustom) customUrl.trim() else option.url
-        viewModelScope.launch {
+        installJob = viewModelScope.launch {
             installer.install(option, url, token).collect { _state.value = it }
         }
     }

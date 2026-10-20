@@ -1,6 +1,7 @@
 package com.example.englishvoicetutor.data.engine
 
 import android.content.Context
+import android.os.SystemClock
 import android.util.Log
 import com.example.englishvoicetutor.domain.model.CefrLevel
 import com.example.englishvoicetutor.domain.model.Message
@@ -103,6 +104,14 @@ class LiteRtLlmEngine @Inject constructor(
         }
     }
 
+    /**
+     * Файл активной модели переименован (установщик переносит проверенный `.part`
+     * на место `model.litertlm`). Путь нужен для пересборки движка при откате на CPU.
+     */
+    fun onModelFileMoved(newPath: String) {
+        modelPath = newPath
+    }
+
     private fun createEngine(modelPath: String, backend: Backend, maxTokens: Int?): Engine {
         val config = EngineConfig(
             modelPath = modelPath,
@@ -160,12 +169,27 @@ class LiteRtLlmEngine @Inject constructor(
             systemInstruction = Contents.of(systemPrompt),
             initialMessages = initialMessages
         )
+        // Метрики EVT-501: время до первого фрагмента (prefill истории) и всего ответа.
+        val startedAt = SystemClock.elapsedRealtime()
+        var firstChunkAt = 0L
+        var chunks = 0
         eng.createConversation(conversationConfig).use { conversation ->
             conversation.sendMessageAsync(userMessage).collect { message ->
                 val text = message.toString()
-                if (text.isNotEmpty()) onChunk(text)
+                if (text.isNotEmpty()) {
+                    if (chunks == 0) firstChunkAt = SystemClock.elapsedRealtime()
+                    chunks++
+                    onChunk(text)
+                }
             }
         }
+        val finishedAt = SystemClock.elapsedRealtime()
+        Log.d(
+            "LiteRtLlm",
+            "Reply: history=${initialMessages.size} msgs, systemPrompt=${systemPrompt.length} chars, " +
+                "ttft=${if (chunks > 0) firstChunkAt - startedAt else -1}ms, " +
+                "total=${finishedAt - startedAt}ms, chunks=$chunks"
+        )
     }
 
     override suspend fun summarize(history: List<Message>): String {
