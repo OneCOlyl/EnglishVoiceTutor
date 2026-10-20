@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -50,8 +51,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -245,12 +248,25 @@ private fun ActiveConversation(
     onContinue: () -> Unit,
     onOpenSessionReview: () -> Unit,
 ) {
+    val listState = rememberLazyListState()
+    // Новая реплика должна быть видна сразу: без прокрутки в длинном диалоге ответ
+    // появлялся за краем экрана, а при открытии список стоял на начале истории.
+    // При открытии прыгаем без анимации, дальше — плавно.
+    var shownCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(messages.size) {
+        if (messages.isEmpty()) return@LaunchedEffect
+        if (shownCount == 0) listState.scrollToItem(messages.lastIndex)
+        else listState.animateScrollToItem(messages.lastIndex)
+        shownCount = messages.size
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         // Отступы Scaffold уже применены на внешнем Box; внутренний Column должен
         // растягиваться на всю доступную высоту без повторного padding, иначе
         // снизу под инпутом остаётся пустая полоса.
         Column(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)

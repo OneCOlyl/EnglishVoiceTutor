@@ -104,6 +104,9 @@ class ModelInstaller @Inject constructor(
                     // Файл под старым именем движок не откроет, а докачать его в новый нельзя.
                     File(context.filesDir, LEGACY_PART_FILE_NAME).delete()
                     prefs.setPendingModel(option.id, url)
+                    // До первого байта проходит несколько секунд (редиректы, TLS);
+                    // без этого экран после нажатия молчал, и кнопку жали повторно.
+                    send(LlmInstallState.Loading("Подключаемся к серверу…"))
 
                     download(
                         url = url,
@@ -292,7 +295,11 @@ class ModelInstaller @Inject constructor(
         e is SocketTimeoutException -> "Сервер не отвечает. Повторите — загрузка продолжится с места остановки"
         e.message?.contains("ENOSPC") == true || e.message?.contains("No space left") == true ->
             "Закончилось место на устройстве"
-        e is IOException -> "Ошибка сети: ${e.message}. Повторите — загрузка продолжится с места остановки"
+        // Своё сообщение о недокачке уже по-русски; системные (`unexpected end of
+        // stream`, `Connection reset`) пользователю ничего не говорят — они в логе.
+        e is IOException && e.message?.startsWith("Загрузка прервалась") == true ->
+            "${e.message}. Повторите — загрузка продолжится с места остановки"
+        e is IOException -> "Соединение прервалось. Повторите — загрузка продолжится с места остановки"
         else -> e.message ?: "Неизвестная ошибка"
     }
 }
