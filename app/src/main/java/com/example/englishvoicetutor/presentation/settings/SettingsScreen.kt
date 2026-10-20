@@ -106,9 +106,11 @@ fun SettingsScreen(
                         models = viewModel.models,
                         installButtonText = "Сменить модель",
                         onInstall = viewModel::install,
-                        initialSelectedId = viewModel.installedModelId
+                        initialSelectedId = viewModel.formSelectedId
+                            ?: viewModel.installedModelId
                             ?: viewModel.models.first().id,
-                        initialCustomUrl = viewModel.lastCustomUrl,
+                        initialCustomUrl = viewModel.formCustomUrl,
+                        initialToken = viewModel.formToken,
                     )
                 }
 

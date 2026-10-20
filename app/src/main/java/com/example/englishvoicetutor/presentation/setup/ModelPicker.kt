@@ -20,6 +20,10 @@ import com.example.englishvoicetutor.domain.model.LlmModelOption
  *
  * @param initialSelectedId какую модель выделить по умолчанию.
  * @param initialCustomUrl предзаполнить поле «своя ссылка» (последнее значение).
+ * @param initialToken предзаполнить токен — при повторе после ошибки загрузки.
+ *
+ * На время загрузки форма уходит с экрана, и её собственное состояние теряется,
+ * поэтому последний выбор хранит вызывающая ViewModel и передаёт сюда.
  */
 @Composable
 fun ModelPickerForm(
@@ -29,9 +33,10 @@ fun ModelPickerForm(
     modifier: Modifier = Modifier,
     initialSelectedId: String = models.first().id,
     initialCustomUrl: String = "",
+    initialToken: String = "",
 ) {
     var selectedId by rememberSaveable { mutableStateOf(initialSelectedId) }
-    var token by rememberSaveable { mutableStateOf("") }
+    var token by rememberSaveable { mutableStateOf(initialToken) }
     var customUrl by rememberSaveable { mutableStateOf(initialCustomUrl) }
 
     val selected = models.firstOrNull { it.id == selectedId } ?: models.first()

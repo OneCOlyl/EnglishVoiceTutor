@@ -36,7 +36,7 @@ class ModelPreferences @Inject constructor(
             .apply()
     }
 
-    /** id модели, которая сейчас докачивается в `model.litertlm.part`. */
+    /** id модели, которая сейчас докачивается в `model.pending.litertlm`. */
     val pendingModelId: String?
         get() = prefs.getString(KEY_PENDING_ID, null)
 
